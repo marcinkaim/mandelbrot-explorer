@@ -1,0 +1,11 @@
+name = "mandelbrot_explorer"
+description = "Mandelbrot set explorer using Ada 2022, SDL2 and CUDA"
+version = "0.1.0-dev"
+
+authors = ["Marcin Kaim"]
+maintainers = ["Marcin Kaim <9829098+marcinkaim@users.noreply.github.com>"]
+maintainers-logins = ["marcinkaim"]
+
+[[depends-on]]
+gnat = ">=12"
+gprbuild = ">=22"

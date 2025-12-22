@@ -1,0 +1,35 @@
+project Mandelbrot_Explorer is
+
+   -- 1. Source and Object Directories
+   for Source_Dirs use ("src/**");
+   for Object_Dir use "build/obj";
+   for Exec_Dir use "build/bin";
+   
+   -- 2. Main Source File
+   for Main use ("main.adb");
+
+   -- 3. Configuration Packages
+   package Builder is
+      -- Overrides the default executable name ("main") to our target name
+      for Executable ("main.adb") use "mandelbrot-explorer";
+   end Builder;
+
+   package Compiler is
+      -- Standard production switches: optimization and Ada 2022 support
+      for Default_Switches ("Ada") use ("-g", "-O2", "-gnat2022");
+   end Compiler;
+
+   package Binder is
+      -- -Es: Store symbolic tracebacks (useful for crash logs even in static builds)
+      -- -static: Bind explicitly for static linking
+      for Switches ("Ada") use ("-Es", "-static");
+   end Binder;
+
+   package Linker is
+      -- Critical for portability:
+      -- -static: Link against static libraries
+      -- -static-libgcc: Ensure libgcc is also statically linked
+      for Switches ("Ada") use ("-static", "-static-libgcc");
+   end Linker;
+
+end Mandelbrot_Explorer;

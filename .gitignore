@@ -1,0 +1,21 @@
+# Build artifacts
+build/
+*.o
+*.ali
+*.a
+*.so
+*.exe
+obj/
+bin/
+
+# Alire dependencies and cache
+alire/
+alire.toml.lock
+
+# System and IDE
+.DS_Store
+.vscode/
+*.swp
+
+# Secrets (Critical)
+.secrets

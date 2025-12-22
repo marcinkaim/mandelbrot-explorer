@@ -1,0 +1,58 @@
+# Base image: Debian 13 (Trixie) - Slim variant for minimal footprint
+FROM debian:trixie-slim
+
+LABEL maintainer="Container-Forge"
+LABEL description="Build environment for Mandelbrot Explorer (Ada/CUDA)"
+
+# Build Arguments for Host User Mapping
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+ARG ALIRE_VERSION=2.0.1
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PATH="/home/builder/.local/bin:/opt/alire/bin:${PATH}"
+
+# 0. Configure Repositories (Critical Fix)
+# Official Debian images only enable 'main'. NVIDIA toolkit resides in 'non-free'/'contrib'.
+# Trixie uses the deb822 format in /etc/apt/sources.list.d/debian.sources.
+RUN sed -i 's/Components: main/Components: main contrib non-free non-free-firmware/' \
+    /etc/apt/sources.list.d/debian.sources
+
+# 1. Install System Dependencies
+# We update apt cache after enabling non-free sources.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gnat \
+    gprbuild \
+    gcc \
+    libc-dev \
+    git \
+    curl \
+    wget \
+    ca-certificates \
+    libsdl2-dev \
+    nvidia-cuda-toolkit \
+    make \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Install Alire (Ada Package Manager)
+RUN mkdir -p /opt/alire/bin && \
+    wget -q https://github.com/alire-project/alire/releases/download/v${ALIRE_VERSION}/alr-${ALIRE_VERSION}-bin-x86_64-linux.zip -O /tmp/alr.zip && \
+    unzip /tmp/alr.zip -d /tmp/alr_extracted && \
+    mv /tmp/alr_extracted/bin/alr /opt/alire/bin/alr && \
+    chmod +x /opt/alire/bin/alr && \
+    rm -rf /tmp/alr.zip /tmp/alr_extracted
+
+# 3. Create Non-Root User 'builder'
+RUN groupadd -g ${GROUP_ID} builder && \
+    useradd -l -u ${USER_ID} -g builder -m builder -s /bin/bash
+
+# 4. Final Configuration
+USER builder
+WORKDIR /mandelbrot-explorer
+
+# Ensure GPR configuration is ready for the user
+RUN alr toolchain --select gnat_native && \
+    alr toolchain --select gprbuild
+
+CMD ["/bin/bash"]
