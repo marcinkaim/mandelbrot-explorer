@@ -3,7 +3,7 @@ set -euo pipefail
 
 # --- Configuration ---
 PROJECT_NAME="mandelbrot_explorer"
-GPR_FILE="mandelbrot.gpr"
+GPR_FILE="mandelbrot_explorer.gpr"
 ALIRE_TOML="alire.toml"
 
 echo "[INFO] Initializing repository structure for ${PROJECT_NAME}..."
