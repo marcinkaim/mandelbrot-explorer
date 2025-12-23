@@ -15,6 +15,7 @@ alire.toml.lock
 # System and IDE
 .DS_Store
 .vscode/
+*.code-workspace
 *.swp
 
 # Secrets (Critical)
