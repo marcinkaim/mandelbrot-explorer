@@ -1,0 +1,20 @@
+.version 7.0
+.target sm_50
+.address_size 64
+
+// Kernel: test_inc
+.visible .entry test_inc(
+    .param .u64 param_data_ptr
+)
+{
+    .reg .u64 %ptr;
+    .reg .u32 %val;
+
+    ld.param.u64 %ptr, [param_data_ptr];
+    
+    ld.global.u32 %val, [%ptr];
+    add.u32       %val, %val, 1;
+    st.global.u32 [%ptr], %val;
+
+    ret;
+}

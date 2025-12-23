@@ -9,3 +9,4 @@ maintainers-logins = ["marcinkaim"]
 [[depends-on]]
 gnat = ">=12"
 gprbuild = ">=22"
+aunit = "^24.0.0"

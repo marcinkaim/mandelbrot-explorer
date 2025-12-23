@@ -10,7 +10,9 @@ SCRIPTS_DIR = scripts
 HOST_UID = $(shell id -u)
 HOST_GID = $(shell id -g)
 
-.PHONY: all init build-image build shell clean push
+GPU_FLAGS = --device nvidia.com/gpu=all --security-opt=label=disable
+
+.PHONY: all init build-image build shell clean push test
 
 all: build
 
@@ -37,6 +39,16 @@ build:
 		-w /mandelbrot-explorer \
 		$(IMAGE_NAME) \
 		alr build
+
+test:
+	@echo "[Make] Running Unit Tests (AUnit + CUDA)..."
+	$(CONTAINER_TOOL) run --rm \
+		--userns=keep-id \
+		$(GPU_FLAGS) \
+		-v "$(PROJECT_ROOT):/mandelbrot-explorer:rw" \
+		-w /mandelbrot-explorer \
+		$(IMAGE_NAME) \
+		alr exec -- ./build/bin/unit_tests
 
 # 4. Interactive Shell for Debugging
 shell:
