@@ -5,6 +5,9 @@ set -euo pipefail
 PROJECT_NAME="mandelbrot_explorer"
 GPR_FILE="mandelbrot_explorer.gpr"
 ALIRE_TOML="alire.toml"
+AUTHOR="Marcin Kaim"
+MAINTAINER="Marcin Kaim <9829098+marcinkaim@users.noreply.github.com>"
+MAINTAINER_LOGIN="marcinkaim"
 
 echo "[INFO] Initializing repository structure for ${PROJECT_NAME}..."
 
@@ -103,9 +106,9 @@ name = "${PROJECT_NAME}"
 description = "Mandelbrot set explorer using Ada 2022, SDL2 and CUDA"
 version = "0.1.0-dev"
 
-authors = ["Container-Forge"]
-maintainers = ["Container-Forge <builder@example.com>"]
-maintainers-logins = ["container-forge"]
+authors = ["${AUTHOR}"]
+maintainers = ["${MAINTAINER}"]
+maintainers-logins = ["${MAINTAINER_LOGIN}"]
 
 [[depends-on]]
 gnat = ">=12"
