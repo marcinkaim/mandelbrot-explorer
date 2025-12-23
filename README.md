@@ -18,7 +18,12 @@ To build and run this project, you **do not** need to install Ada toolchains, GP
 
 **Host Requirements:**
 * **Linux** (Kernel 5.x+)
-* **Podman** (recommended) or Docker
+* **NVIDIA GPU** (Pascal or newer recommended) with proprietary drivers installed.
+* **NVIDIA Container Toolkit** (Critical):
+  * Required to pass GPU access to containers.
+  * Must be installed via your distribution's package manager (e.g., `apt` on Debian/Ubuntu) after adding the official NVIDIA repository.
+  * *See official NVIDIA documentation for installation steps.*
+* **Podman** (recommended) or Docker.
 * **GNU Make**
 * **Git**
 
@@ -52,7 +57,16 @@ make build
 
 ```
 
-### 4. Run
+### 4. Verify (Unit Tests)
+
+Execute the AUnit test suite inside the container with GPU passthrough enabled. This confirms that the Ada bindings can successfully initialize the CUDA Driver, load PTX kernels, and execute CUDA Graphs on your hardware.
+
+```bash
+make test
+
+```
+
+### 5. Run
 
 The resulting artifact is located in `build/bin/`.
 
