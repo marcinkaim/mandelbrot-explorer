@@ -17,6 +17,7 @@ alire.toml.lock
 .vscode/
 *.code-workspace
 *.swp
+logs/
 
 # Secrets (Critical)
 .secrets
