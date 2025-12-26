@@ -19,7 +19,7 @@ project Mandelbrot_Explorer is
 
    package Compiler is
       -- Standard production switches: optimization and Ada 2022 support
-      for Default_Switches ("Ada") use ("-g", "-O2", "-gnat2022", "-gnatW8");
+      for Default_Switches ("Ada") use ("-g", "-O2", "-gnat2022");
    end Compiler;
 
    package Binder is

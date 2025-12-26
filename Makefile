@@ -41,7 +41,16 @@ build:
 		alr build
 
 test:
-	@echo "[Make] Running Unit Tests (AUnit + CUDA)..."
+	@echo "[Make] Verifying Host NVIDIA Drivers via Container Runtime..."
+	@# Próbujemy uruchomić pusty kontener z żądaniem dostępu do GPU.
+	@# Jeśli host nie ma załadowanego nvidia-uvm, to polecenie zwróci błąd CDI/Hook.
+	@$(CONTAINER_TOOL) run --rm $(GPU_FLAGS) $(IMAGE_NAME) true > /dev/null 2>&1 || \
+	(echo -e "\033[0;31m[ERROR] Host GPU not accessible via Container Runtime.\033[0m"; \
+	 echo "       Reason: The Host machine cannot provide '/dev/nvidia-uvm' to the container."; \
+	 echo "       Action: Run 'sudo nvidia-modprobe -u -c=0' on the HOST machine (not in VS Code)."; \
+	 exit 1)
+	
+	@echo "[Make] GPU check passed. Running Unit Tests (AUnit + CUDA)..."
 	$(CONTAINER_TOOL) run --rm \
 		--userns=keep-id \
 		$(GPU_FLAGS) \
