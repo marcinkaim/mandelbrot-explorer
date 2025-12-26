@@ -17,8 +17,8 @@ The project state is fully defined by the content of the `docs/management/` dire
     * Contains: Context, Objective, Key Responsibilities, Definition of Done (DoD).
 3.  **Approval:** The Operator (Human) accepts the task content.
 
-### Phase 2: Execution (Engineers)
-1.  **Context Loading:** The Operator starts the appropriate Agent (e.g., Graphics Engineer) and provides:
+### Phase 2: Execution (Engineers / DevOps / Architect)
+1.  **Context Loading:** The Operator starts the appropriate Agent (e.g., Graphics Engineer or DevOps) and provides:
     * `00_PROJECT_CONTEXT.md`
     * `02_ARCHITECTURE_DECISIONS.md`
     * The specific task file (e.g., `Task_2.1...md`).
