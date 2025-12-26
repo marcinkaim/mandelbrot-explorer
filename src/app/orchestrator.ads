@@ -2,6 +2,7 @@ with System;
 with Interfaces.C; use Interfaces.C;
 with Render_Interface;
 with GPU_Context;
+with SDL2_Thin;    use SDL2_Thin;
 
 package Orchestrator is
 
@@ -13,23 +14,31 @@ package Orchestrator is
 
 private
 
+   type Job_Buffer_Array is array (1 .. 100) of Render_Interface.Tile_Description;
+
    -- Protected Job Queue (Thread-Safe)
    protected type Job_Queue is
       procedure Push (Job : Render_Interface.Tile_Description);
       entry Pop (Job : out Render_Interface.Tile_Description);
       function Length return Natural;
    private
-      Jobs : array (1 .. 100) of Render_Interface.Tile_Description;
+      Jobs : Job_Buffer_Array;
       Head : Natural := 1;
       Tail : Natural := 1;
       Count : Natural := 0;
    end Job_Queue;
 
+   type Job_Queue_Access is access all Job_Queue;
+   pragma No_Strict_Aliasing (Job_Queue_Access);
+
+   type Context_Access   is access all GPU_Context.CUDA_Context;
+   pragma No_Strict_Aliasing (Context_Access);
+
    -- The Worker Task
    task type Compute_Worker is
       -- Worker startuje i otrzymuje referencje do Kolejki oraz Kontekstu GPU
-      entry Start (Queue   : not null access Job_Queue;
-                   Context : not null access GPU_Context.CUDA_Context);
+      entry Start (Queue   : Job_Queue_Access;
+                   Context : Context_Access);
       entry Stop;
    end Compute_Worker;
 
@@ -40,6 +49,9 @@ private
       Worker  : Compute_Worker;
       
       -- Resources (Handles)
+      Window_Handle  : SDL_Window_Ptr := null;
+      GL_Context     : SDL_GLContext  := SDL_GLContext (System.Null_Address);
+      VAO_Handle     : unsigned := 0;
       PBO_Handle     : unsigned := 0; -- GL Pixel Buffer Object
       Texture_Handle : unsigned := 0; -- GL Texture Atlas
       

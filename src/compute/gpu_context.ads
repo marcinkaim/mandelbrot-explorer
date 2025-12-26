@@ -1,3 +1,4 @@
+with System;
 with CUDA_Driver_API; use CUDA_Driver_API;
 
 package GPU_Context is
@@ -18,7 +19,7 @@ package GPU_Context is
 
 private
    type CUDA_Context is tagged limited record
-      Handle      : CUcontext := CUcontext (System.Null_Address);
+      Handle      : aliased CUcontext := CUcontext (System.Null_Address);
       Initialized : Boolean := False;
    end record;
 

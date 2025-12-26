@@ -1,5 +1,6 @@
 with Interfaces.C; use Interfaces.C;
 with Ada.Text_IO;
+with System;
 
 package body GPU_Context is
 
@@ -9,7 +10,7 @@ package body GPU_Context is
    procedure Initialize (Self : in out CUDA_Context) is
       Res     : CUresult;
       Dev     : aliased CUdevice;
-      Dev_Cnt : aliased int;
+      --  Dev_Cnt : aliased int;
    begin
       if Self.Initialized then
          return; -- Idempotency
@@ -22,13 +23,13 @@ package body GPU_Context is
       end if;
 
       -- 2. Find Device
-      Res := cuDeviceGet(Dev'Access, 0); -- Zawsze bierzemy GPU 0
+      Res := cuDeviceGet(Dev'Unchecked_Access, 0);
       if Res /= CUDA_SUCCESS then
          raise Program_Error with "cuDeviceGet failed: " & CUresult'Image(Res);
       end if;
 
       -- 3. Create Context
-      Res := cuCtxCreate(Self.Handle'Access, CU_CTX_SCHED_AUTO, Dev);
+      Res := cuCtxCreate(Self.Handle'Unchecked_Access, CU_CTX_SCHED_AUTO, Dev);
       if Res /= CUDA_SUCCESS then
          raise Program_Error with "cuCtxCreate failed: " & CUresult'Image(Res);
       end if;
