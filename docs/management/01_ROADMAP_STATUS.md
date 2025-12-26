@@ -16,8 +16,8 @@
     * *Goal:* Verify Task 2.1 code safety (Unchecked_Access) and alignment with ADR-005.
 
 ## 🔴 MAINTENANCE & BUGS [ACTIVE]
-* [ ] **Bug 001: Fix Unit Test Build & Execution Configuration.**
-    * *Context:* `make test` fails because it looks for `test_driver` binary which is no longer built.
+* [x] **Bug 001: Fix Unit Test Build & Execution Configuration.**
+    * *Status:* DONE. Makefile now verifies Host GPU availability via dry-run container.
 
 ## 🟡 EPIC 3: The Mandelbrot Engine (Compute) [READY]
 **Goal:** First fractal render.
