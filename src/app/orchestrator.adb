@@ -42,7 +42,7 @@ package body Orchestrator is
    -------------------------------------------------------------------------
    -- Compute_Worker Implementation
    -------------------------------------------------------------------------
-   task body Compute_Worker is
+task body Compute_Worker is
       My_Queue    : Job_Queue_Access;
       My_Context  : Context_Access;
       Current_Job : Render_Interface.Tile_Description;
@@ -58,18 +58,40 @@ package body Orchestrator is
 
       while Should_Run loop
          select
+            -- 1. Administrative Commands (Highest Priority)
             accept Stop do
                Should_Run := False;
             end Stop;
+         or
+            -- Synchronization: Pause processing to allow safe VRAM ops
+            accept Pause do
+               -- [LOGGING] Commented out to prevent console spam during resize
+               -- Ada.Text_IO.Put_Line ("[Worker] Paused (Waiting for Resize).");
+               null;
+            end Pause; 
+            
+            accept Resume;
+            -- [LOGGING] Commented out to prevent console spam during resize
+            -- Ada.Text_IO.Put_Line ("[Worker] Resumed.");
+            
          else
+            -- 2. Normal Operation (Timed Fetch)
             select
+               -- Try to get a job with a short timeout
                My_Queue.Pop (Current_Job);
-               -- [SIMULATION]
+               
+               -- [SIMULATION] Process the job
+               -- [LOGGING] Reduced logging frequency could be implemented here later
+               -- For now, we keep tile logs to prove work is happening, but normally this is also spam.
                Ada.Text_IO.Put_Line ("[Worker] Processed Tile: Zoom=" & 
                                      Long_Float'Image(Current_Job.Zoom));
+               
+               -- Simulate workload
                delay 0.01; 
+
             or
-               delay 0.1;
+               -- Timeout (approx 60 FPS polling)
+               delay 0.016; 
             end select;
          end select;
       end loop;
@@ -171,18 +193,23 @@ package body Orchestrator is
          return;
       end if;
 
-      Ada.Text_IO.Put_Line ("[Orchestrator] Window Resized: " & 
-                            int'Image(New_W) & "x" & int'Image(New_H));
+      -- [LOGGING] Commented out to prevent console spam
+      -- Ada.Text_IO.Put_Line ("[Orchestrator] Window Resized: " & 
+      --                      int'Image(New_W) & "x" & int'Image(New_H));
 
-      -- 1. Update State
+      -- [SYNC] 1. Pause the Worker!
+      -- This blocks the UI thread until the Worker hits the 'accept Pause' block.
+      -- Crucial to prevent Use-After-Free on the PBO.
+      Self.Worker.Pause;
+
+      -- 2. Update State
       Self.Width  := New_W;
       Self.Height := New_H;
 
-      -- 2. Update Viewport
+      -- 3. Update Viewport
       glViewport (0, 0, GLsizei(Self.Width), GLsizei(Self.Height));
 
-      -- 3. Reallocate Texture
-      -- Note: glDeleteTextures takes address of the handle
+      -- 4. Reallocate Texture
       glDeleteTextures (1, Self.Texture_Handle'Address);
       
       glGenTextures (1, Self.Texture_Handle'Address);
@@ -190,20 +217,17 @@ package body Orchestrator is
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLint(GL_NEAREST));
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLint(GL_NEAREST));
       
-      -- Allocate new texture storage
       glTexImage2D 
         (GL_TEXTURE_2D, 0, GLint(GL_RGBA8), 
          GLsizei(Self.Width), GLsizei(Self.Height), 
          0, GL_RGBA, GL_UNSIGNED_BYTE, System.Null_Address);
 
-      -- 4. Reallocate PBO
-      -- Note: glDeleteBuffers takes a pointer to GLuint
+      -- 5. Reallocate PBO
       glDeleteBuffers (1, PBO_Ptr);
       
       glGenBuffers (1, Self.PBO_Handle'Address);
       glBindBuffer (GL_PIXEL_UNPACK_BUFFER, Self.PBO_Handle);
       
-      -- Reallocate PBO storage
       glBufferData 
         (GL_PIXEL_UNPACK_BUFFER, 
          Long_Integer(Self.Width * Self.Height * 4), 
@@ -212,7 +236,11 @@ package body Orchestrator is
          
       glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0);
 
-      -- 5. Force Redraw
+      -- [SYNC] 6. Resume the Worker
+      -- The worker will now use the new (and empty) PBO handle when it gets a job.
+      Self.Worker.Resume;
+
+      -- 7. Force Redraw
       Self.Queue.Push ((0, 0, Self.Width, Self.Height, 0.0, 0.0, Self.Zoom_Level));
    end Handle_Resize;
 
@@ -224,7 +252,6 @@ package body Orchestrator is
       Res : SDL_Result;
       GL_Attr_Res : int;
       
-      -- Quad Vertices (Pos: X,Y, Tex: U,V)
       type Vertex_Data is array (1 .. 24) of GLfloat;
       Vertices : aliased Vertex_Data :=
         (
@@ -317,10 +344,6 @@ package body Orchestrator is
       Ada.Text_IO.Put_Line ("[Orchestrator] Graphics Resources Allocated.");
 
       -- 8. Start Worker
-      -- FIX CRIT-02: Removing Unchecked_Conversion for pointers.
-      -- Assuming Queue and Context are aliased in spec and accessible directly.
-      -- However, since the types are distinct, Unchecked_Access is sometimes valid for passing strictly typed pointers
-      -- if the receiving type is defined as 'access all'.
       Queue_Ptr := Self.Queue'Unchecked_Access;
       Ctx_Ptr   := Self.Context'Unchecked_Access;
       

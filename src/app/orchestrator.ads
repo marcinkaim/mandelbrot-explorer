@@ -38,6 +38,9 @@ private
    task type Compute_Worker is
       entry Start (Queue   : Job_Queue_Access;
                    Context : Context_Access);
+      entry Pause;
+      entry Resume;
+      
       entry Stop;
    end Compute_Worker;
 
@@ -50,7 +53,7 @@ private
       -- Resources (Handles)
       Window_Handle  : SDL_Window_Ptr := null;
       GL_Context     : SDL_GLContext  := SDL_GLContext (System.Null_Address);
-      
+
       -- OpenGL Objects
       VAO_Handle     : aliased unsigned := 0;
       VBO_Handle     : aliased unsigned := 0;
