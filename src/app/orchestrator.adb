@@ -3,19 +3,12 @@ with Interfaces.C;         use Interfaces.C;
 with Interfaces.C.Strings; use Interfaces.C.Strings;
 with System;
 with System.Storage_Elements; use System.Storage_Elements;
-with Ada.Unchecked_Conversion;
 
-with SDL2_Thin;    use SDL2_Thin;
-with OpenGL_Thin;  use OpenGL_Thin;
+with SDL2_Thin;   use SDL2_Thin;
+with OpenGL_Thin; use OpenGL_Thin;
 with Render_Interface;
 
 package body Orchestrator is
-
-   -------------------------------------------------------------------------
-   -- Helpers for pointers conversions
-   -------------------------------------------------------------------------
-   function To_Queue_Ptr is new Ada.Unchecked_Conversion (System.Address, Job_Queue_Access);
-   function To_Ctx_Ptr   is new Ada.Unchecked_Conversion (System.Address, Context_Access);
 
    -------------------------------------------------------------------------
    -- Job_Queue Implementation (Ring Buffer)
@@ -189,8 +182,8 @@ package body Orchestrator is
           1.0,  1.0,  1.0, 1.0  -- Top Right
         );
         
-      VBO : aliased GLuint;
-      Shader_Program : GLuint;
+      Queue_Ptr : Job_Queue_Access;
+      Ctx_Ptr   : Context_Access;
    begin
       -- 1. SDL Init
       Res := SDL_Init (SDL_INIT_VIDEO);
@@ -228,28 +221,26 @@ package body Orchestrator is
       Ada.Text_IO.Put_Line ("[Orchestrator] GL Context Initialized.");
 
       -- 5. Compile Shaders
-      Shader_Program := Compile_Shaders;
-      glUseProgram (Shader_Program);
+      Self.Program_Handle := Compile_Shaders;
+      glUseProgram (Self.Program_Handle);
       
       declare
          Name_C : aliased char_array := To_C ("screenTexture");
       begin
-         glUniform1i (glGetUniformLocation (Shader_Program, Name_C'Address), 0);
+         glUniform1i (glGetUniformLocation (Self.Program_Handle, Name_C'Address), 0);
       end;
 
       -- 6. Setup Geometry (VAO/VBO)
       glGenVertexArrays (1, Self.VAO_Handle'Address);
-      glGenBuffers (1, VBO'Address);
+      glGenBuffers (1, Self.VBO_Handle'Address);
       
       glBindVertexArray (Self.VAO_Handle);
-      
-      glBindBuffer (GL_ARRAY_BUFFER, VBO);
+      glBindBuffer (GL_ARRAY_BUFFER, Self.VBO_Handle);
       glBufferData (GL_ARRAY_BUFFER, Vertices'Size / 8, Vertices'Address, GL_STATIC_DRAW);
 
       -- Pos Attribute
       glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 4 * 4, System.Null_Address);
       glEnableVertexAttribArray (0);
-      
       -- Tex Attribute (Offset = 2 * sizeof(float) = 8)
       glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 4 * 4, To_Address(8));
       glEnableVertexAttribArray (1);
@@ -273,8 +264,11 @@ package body Orchestrator is
       Ada.Text_IO.Put_Line ("[Orchestrator] Graphics Resources Allocated.");
 
       -- 8. Start Worker
-      Self.Worker.Start (To_Queue_Ptr (Self.Queue'Address), 
-                         To_Ctx_Ptr (Self.Context'Address));
+      Queue_Ptr := Self.Queue'Unchecked_Access;
+      Ctx_Ptr   := Self.Context'Unchecked_Access;
+      
+      Self.Worker.Start (Queue_Ptr, Ctx_Ptr);
+
       Self.Is_Running := True;
    end Initialize;
 
@@ -313,7 +307,7 @@ package body Orchestrator is
          glBindTexture (GL_TEXTURE_2D, Self.Texture_Handle);
 
          -- [CRITICAL INTEROP STEP]
-         -- Update texture from PBO. 
+         -- Update texture from PBO.
          -- In the real app, CUDA writes to PBO before this.
          glBindBuffer (GL_PIXEL_UNPACK_BUFFER, Self.PBO_Handle);
          glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, Self.Width, Self.Height, GL_RGBA, GL_UNSIGNED_BYTE, System.Null_Address);
@@ -329,11 +323,42 @@ package body Orchestrator is
    end Run_UI_Loop;
 
    procedure Shutdown (Self : in out Controller) is
+      VBO_Ptr : GLuint_Ptr := Self.VBO_Handle'Unchecked_Access;
+      PBO_Ptr : GLuint_Ptr := Self.PBO_Handle'Unchecked_Access;
    begin
       Self.Worker.Stop;
+      
+      -- Cleanup GL Resources in reverse order
+      Ada.Text_IO.Put_Line ("[Orchestrator] Cleaning up GL resources...");
+
+      -- 1. Buffers (VBO, PBO)
+      if Self.VBO_Handle /= 0 then
+         glDeleteBuffers (1, VBO_Ptr);
+      end if;
+      if Self.PBO_Handle /= 0 then
+         glDeleteBuffers (1, PBO_Ptr);
+      end if;
+
+      -- 2. Vertex Array
+      if Self.VAO_Handle /= 0 then
+         glDeleteVertexArrays (1, Self.VAO_Handle'Address);
+      end if;
+
+      -- 3. Textures
+      if Self.Texture_Handle /= 0 then
+         glDeleteTextures (1, Self.Texture_Handle'Address);
+      end if;
+
+      -- 4. Shader Program
+      if Self.Program_Handle /= 0 then
+         glDeleteProgram (Self.Program_Handle);
+      end if;
+
+      -- 5. Context & Window
       SDL_GL_DeleteContext (Self.GL_Context);
       SDL_DestroyWindow (Self.Window_Handle);
       SDL_Quit;
+      
       Ada.Text_IO.Put_Line ("[Orchestrator] Shutdown complete.");
    end Shutdown;
 

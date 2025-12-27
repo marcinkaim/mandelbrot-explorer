@@ -40,16 +40,15 @@ package OpenGL_Thin is
    GL_STREAM_DRAW          : constant GLenum := 16#88E0#;
    GL_DYNAMIC_DRAW         : constant GLenum := 16#88E8#;
 
-   -- Typy Danych
    GL_BYTE           : constant GLenum := 16#1400#;
    GL_UNSIGNED_BYTE  : constant GLenum := 16#1401#;
    GL_FLOAT          : constant GLenum := 16#1406#;
 
-   -- Tekstury
    GL_TEXTURE_2D     : constant GLenum := 16#0DE1#;
    GL_TEXTURE0       : constant GLenum := 16#84C0#;
-   GL_RGBA           : constant GLenum := 16#1908#; -- Internal format and pixel format
-   GL_RGBA8          : constant GLenum := 16#8058#; -- Sized Internal Format
+   GL_RGBA           : constant GLenum := 16#1908#;
+   GL_RGBA8          : constant GLenum := 16#8058#;
+
    GL_TEXTURE_MAG_FILTER : constant GLenum := 16#2800#;
    GL_TEXTURE_MIN_FILTER : constant GLenum := 16#2801#;
    GL_NEAREST        : constant GLenum := 16#2600#;
@@ -60,6 +59,7 @@ package OpenGL_Thin is
 
    GL_FRAGMENT_SHADER : constant GLenum := 16#8B30#;
    GL_VERTEX_SHADER   : constant GLenum := 16#8B31#;
+   
    GL_COMPILE_STATUS  : constant GLenum := 16#8B81#;
    GL_LINK_STATUS     : constant GLenum := 16#8B82#;
    GL_INFO_LOG_LENGTH : constant GLenum := 16#8B84#;
@@ -114,6 +114,9 @@ package OpenGL_Thin is
 
    procedure glGenTextures (n : GLsizei; textures : System.Address);
    pragma Import (C, glGenTextures, "glGenTextures");
+   
+   procedure glDeleteTextures (n : GLsizei; textures : System.Address);
+   pragma Import (C, glDeleteTextures, "glDeleteTextures");
 
    procedure glActiveTexture (texture : GLenum);
    pragma Import (C, glActiveTexture, "glActiveTexture");

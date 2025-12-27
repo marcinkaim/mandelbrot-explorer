@@ -36,7 +36,6 @@ private
 
    -- The Worker Task
    task type Compute_Worker is
-      -- Worker startuje i otrzymuje referencje do Kolejki oraz Kontekstu GPU
       entry Start (Queue   : Job_Queue_Access;
                    Context : Context_Access);
       entry Stop;
@@ -47,13 +46,19 @@ private
       Queue   : aliased Job_Queue;
       Context : aliased GPU_Context.CUDA_Context; -- Orchestrator owns the context data
       Worker  : Compute_Worker;
-      
+
       -- Resources (Handles)
       Window_Handle  : SDL_Window_Ptr := null;
       GL_Context     : SDL_GLContext  := SDL_GLContext (System.Null_Address);
-      VAO_Handle     : unsigned := 0;
-      PBO_Handle     : unsigned := 0; -- GL Pixel Buffer Object
-      Texture_Handle : unsigned := 0; -- GL Texture Atlas
+      
+      -- OpenGL Objects
+      VAO_Handle     : aliased unsigned := 0;
+      VBO_Handle     : aliased unsigned := 0;
+      PBO_Handle     : aliased unsigned := 0; -- GL Pixel Buffer Object
+      Texture_Handle : aliased unsigned := 0;
+      Program_Handle : unsigned := 0;
+
+      -- GL Texture Atlas
       
       -- CUDA Resource Handle (Registered PBO)
       CUDA_PBO_Resource : System.Address := System.Null_Address;
