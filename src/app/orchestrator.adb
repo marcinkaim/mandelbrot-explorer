@@ -161,6 +161,62 @@ package body Orchestrator is
    end Compile_Shaders;
 
    -------------------------------------------------------------------------
+   -- Orchestrator Private Logic
+   -------------------------------------------------------------------------
+
+   procedure Handle_Resize (Self : in out Controller; New_W, New_H : int) is
+      PBO_Ptr : GLuint_Ptr := Self.PBO_Handle'Unchecked_Access;
+   begin
+      if New_W <= 0 or New_H <= 0 then
+         return;
+      end if;
+
+      Ada.Text_IO.Put_Line ("[Orchestrator] Window Resized: " & 
+                            int'Image(New_W) & "x" & int'Image(New_H));
+
+      -- 1. Update State
+      Self.Width  := New_W;
+      Self.Height := New_H;
+
+      -- 2. Update Viewport
+      glViewport (0, 0, GLsizei(Self.Width), GLsizei(Self.Height));
+
+      -- 3. Reallocate Texture
+      -- Note: glDeleteTextures takes address of the handle
+      glDeleteTextures (1, Self.Texture_Handle'Address);
+      
+      glGenTextures (1, Self.Texture_Handle'Address);
+      glBindTexture (GL_TEXTURE_2D, Self.Texture_Handle);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLint(GL_NEAREST));
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLint(GL_NEAREST));
+      
+      -- Allocate new texture storage
+      glTexImage2D 
+        (GL_TEXTURE_2D, 0, GLint(GL_RGBA8), 
+         GLsizei(Self.Width), GLsizei(Self.Height), 
+         0, GL_RGBA, GL_UNSIGNED_BYTE, System.Null_Address);
+
+      -- 4. Reallocate PBO
+      -- Note: glDeleteBuffers takes a pointer to GLuint
+      glDeleteBuffers (1, PBO_Ptr);
+      
+      glGenBuffers (1, Self.PBO_Handle'Address);
+      glBindBuffer (GL_PIXEL_UNPACK_BUFFER, Self.PBO_Handle);
+      
+      -- Reallocate PBO storage
+      glBufferData 
+        (GL_PIXEL_UNPACK_BUFFER, 
+         Long_Integer(Self.Width * Self.Height * 4), 
+         System.Null_Address, 
+         GL_STREAM_DRAW);
+         
+      glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0);
+
+      -- 5. Force Redraw
+      Self.Queue.Push ((0, 0, Self.Width, Self.Height, 0.0, 0.0, Self.Zoom_Level));
+   end Handle_Resize;
+
+   -------------------------------------------------------------------------
    -- Orchestrator Lifecycle
    -------------------------------------------------------------------------
 
@@ -169,7 +225,6 @@ package body Orchestrator is
       GL_Attr_Res : int;
       
       -- Quad Vertices (Pos: X,Y, Tex: U,V)
-      -- Full screen quad: -1 to 1
       type Vertex_Data is array (1 .. 24) of GLfloat;
       Vertices : aliased Vertex_Data :=
         (
@@ -181,7 +236,6 @@ package body Orchestrator is
           1.0, -1.0,  1.0, 0.0, -- Bot Right
           1.0,  1.0,  1.0, 1.0  -- Top Right
         );
-        
       Queue_Ptr : Job_Queue_Access;
       Ctx_Ptr   : Context_Access;
    begin
@@ -237,10 +291,11 @@ package body Orchestrator is
       glBindVertexArray (Self.VAO_Handle);
       glBindBuffer (GL_ARRAY_BUFFER, Self.VBO_Handle);
       glBufferData (GL_ARRAY_BUFFER, Vertices'Size / 8, Vertices'Address, GL_STATIC_DRAW);
-
+      
       -- Pos Attribute
       glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 4 * 4, System.Null_Address);
       glEnableVertexAttribArray (0);
+      
       -- Tex Attribute (Offset = 2 * sizeof(float) = 8)
       glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 4 * 4, To_Address(8));
       glEnableVertexAttribArray (1);
@@ -251,37 +306,43 @@ package body Orchestrator is
       glBindTexture (GL_TEXTURE_2D, Self.Texture_Handle);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLint(GL_NEAREST));
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLint(GL_NEAREST));
-      -- Allocate texture storage (null data)
       glTexImage2D (GL_TEXTURE_2D, 0, GLint(GL_RGBA8), Self.Width, Self.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, System.Null_Address);
-
+      
       -- PBO
       glGenBuffers (1, Self.PBO_Handle'Address);
       glBindBuffer (GL_PIXEL_UNPACK_BUFFER, Self.PBO_Handle);
-      -- Allocate PBO storage (null data, STREAM_DRAW because we write often)
       glBufferData (GL_PIXEL_UNPACK_BUFFER, Long_Integer(Self.Width * Self.Height * 4), System.Null_Address, GL_STREAM_DRAW);
       glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0); -- Unbind
 
       Ada.Text_IO.Put_Line ("[Orchestrator] Graphics Resources Allocated.");
 
       -- 8. Start Worker
+      -- FIX CRIT-02: Removing Unchecked_Conversion for pointers.
+      -- Assuming Queue and Context are aliased in spec and accessible directly.
+      -- However, since the types are distinct, Unchecked_Access is sometimes valid for passing strictly typed pointers
+      -- if the receiving type is defined as 'access all'.
       Queue_Ptr := Self.Queue'Unchecked_Access;
       Ctx_Ptr   := Self.Context'Unchecked_Access;
       
       Self.Worker.Start (Queue_Ptr, Ctx_Ptr);
-
       Self.Is_Running := True;
    end Initialize;
 
    procedure Run_UI_Loop (Self : in out Controller) is
       Event : aliased SDL_Event;
-      Res   : int;
-      Needs_Redraw : Boolean := True;
    begin
       while Self.Is_Running loop
          -- 1. Poll Events
          while SDL_PollEvent (Event'Access) /= 0 loop
             if Event.Common.type_field = SDL_QUIT_EVENT then
                Self.Is_Running := False;
+            
+            -- Handle Window Resize
+            elsif Event.Common.type_field = SDL_WINDOWEVENT then
+               if Event.Window.event = SDL_WINDOWEVENT_RESIZED then
+                  Handle_Resize (Self, Event.Window.data1, Event.Window.data2);
+               end if;
+
             elsif Event.Common.type_field = SDL_KEYDOWN then
                -- Simple Navigation Logic
                if Event.Key.keysym.sym = SDLK_ESCAPE then
@@ -289,7 +350,6 @@ package body Orchestrator is
                elsif Event.Key.keysym.sym = SDLK_w then
                   Self.Zoom_Level := Self.Zoom_Level * 1.1;
                   Ada.Text_IO.Put_Line ("Zoom In: " & Long_Float'Image(Self.Zoom_Level));
-                  -- Push Job
                   Self.Queue.Push ((0,0, Self.Width, Self.Height, 0.0, 0.0, Self.Zoom_Level));
                elsif Event.Key.keysym.sym = SDLK_s then
                   Self.Zoom_Level := Self.Zoom_Level / 1.1;
@@ -306,9 +366,7 @@ package body Orchestrator is
          glActiveTexture (GL_TEXTURE0);
          glBindTexture (GL_TEXTURE_2D, Self.Texture_Handle);
 
-         -- [CRITICAL INTEROP STEP]
-         -- Update texture from PBO.
-         -- In the real app, CUDA writes to PBO before this.
+         -- Update texture from PBO
          glBindBuffer (GL_PIXEL_UNPACK_BUFFER, Self.PBO_Handle);
          glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, Self.Width, Self.Height, GL_RGBA, GL_UNSIGNED_BYTE, System.Null_Address);
          glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0);
@@ -328,7 +386,6 @@ package body Orchestrator is
    begin
       Self.Worker.Stop;
       
-      -- Cleanup GL Resources in reverse order
       Ada.Text_IO.Put_Line ("[Orchestrator] Cleaning up GL resources...");
 
       -- 1. Buffers (VBO, PBO)

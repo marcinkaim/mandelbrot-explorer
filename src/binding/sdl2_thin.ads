@@ -13,11 +13,9 @@ package SDL2_Thin is
    SDL_SUCCESS : constant SDL_Result := 0;
 
    SDL_INIT_VIDEO : constant unsigned := 16#0000_0020#;
-
    SDL_WINDOW_OPENGL     : constant unsigned := 16#0000_0002#;
    SDL_WINDOW_SHOWN      : constant unsigned := 16#0000_0004#;
    SDL_WINDOW_RESIZABLE  : constant unsigned := 16#0000_0020#;
-   
    SDL_WINDOWPOS_CENTERED : constant int := 16#2FFF_0000#;
 
    type SDL_GLattr is
@@ -46,7 +44,7 @@ package SDL2_Thin is
       SDL_GL_SHARE_WITH_CURRENT_CONTEXT,
       SDL_GL_FRAMEBUFFER_SRGB_CAPABLE,
       SDL_GL_CONTEXT_RELEASE_BEHAVIOR);
-   
+
    for SDL_GLattr use
      (SDL_GL_RED_SIZE                   => 0,
       SDL_GL_GREEN_SIZE                 => 1,
@@ -91,9 +89,12 @@ package SDL2_Thin is
    ---------------------------------------------------------------------------
 
    type SDL_EventType is new unsigned;
-   SDL_QUIT_EVENT : constant SDL_EventType := 16#100#;
-   SDL_KEYDOWN    : constant SDL_EventType := 16#300#;
-   SDL_KEYUP      : constant SDL_EventType := 16#301#;
+   SDL_QUIT_EVENT  : constant SDL_EventType := 16#100#;
+   SDL_WINDOWEVENT : constant SDL_EventType := 16#200#; 
+   SDL_KEYDOWN     : constant SDL_EventType := 16#300#;
+   SDL_KEYUP       : constant SDL_EventType := 16#301#;
+
+   SDL_WINDOWEVENT_RESIZED : constant unsigned_char := 5;
 
    type SDL_Keycode is new int;
    SDLK_ESCAPE : constant SDL_Keycode := 27;
@@ -103,9 +104,9 @@ package SDL2_Thin is
    SDLK_d      : constant SDL_Keycode := 100;
 
    type SDL_Keysym is record
-      scancode : int;     -- SDL_Scancode
+      scancode : int;
       sym      : SDL_Keycode;
-      mod_flags: unsigned_short; -- Uint16
+      mod_flags: unsigned_short;
       unused   : unsigned;
    end record;
    pragma Convention (C, SDL_Keysym);
@@ -114,13 +115,26 @@ package SDL2_Thin is
       type_field : SDL_EventType;
       timestamp  : unsigned;
       windowID   : unsigned;
-      state      : unsigned_char; -- Uint8
-      repeat     : unsigned_char; -- Uint8
+      state      : unsigned_char;
+      repeat     : unsigned_char;
       padding2   : unsigned_char;
       padding3   : unsigned_char;
       keysym     : SDL_Keysym;
    end record;
    pragma Convention (C, SDL_KeyboardEvent);
+
+   type SDL_Window_Event is record
+      type_field : SDL_EventType;
+      timestamp  : unsigned;
+      windowID   : unsigned;
+      event      : unsigned_char;
+      padding1   : unsigned_char;
+      padding2   : unsigned_char;
+      padding3   : unsigned_char;
+      data1      : int;           -- Width
+      data2      : int;           -- Height
+   end record;
+   pragma Convention (C, SDL_Window_Event);
 
    type SDL_QuitEvent is record
       type_field : SDL_EventType;
@@ -140,12 +154,12 @@ package SDL2_Thin is
       case Event_Type is
          when SDL_QUIT_EVENT =>
             Quit : SDL_QuitEvent;
+         when SDL_WINDOWEVENT =>
+            Window : SDL_Window_Event;
          when SDL_KEYDOWN | SDL_KEYUP =>
             Key  : SDL_KeyboardEvent;
          when others =>
             Common : SDL_CommonEvent;
-            -- Padding to match 56 bytes of SDL_Event union size could be added here
-            -- but for thin binding reading strictly mapped fields is enough.
             Padding : Event_Padding_Array; 
       end case;
    end record;
