@@ -9,19 +9,18 @@
 
 ## 🟡 EPIC 2: The Visual Engine (Orchestration) [IN PROGRESS]
 **Goal:** Windowing, OpenGL context, and thread management.
-* [x] **Task 2.1: Orchestrator Implementation & SDL2/GL Backend.**
-    * *Status:* DONE. Window opens, PBO allocated, Worker thread runs.
-* [ ] **Task 2.2: Architecture Compliance Review (Audit).**
-    * *Assignee:* System-Nexus.
-    * *Goal:* Verify Task 2.1 code safety (Unchecked_Access) and alignment with ADR-005.
+* [x] Task 2.1: Orchestrator Implementation & SDL2/GL Backend.
+* [x] Task 2.2: Architecture Compliance Review (Audit).
+* [x] Task 2.1 (Hotfix): Architecture Compliance Corrections.
+* [ ] **Task 2.3: Dynamic Resolution & Window Resizing.**
+    * *Status:* ACTIVE.
 
 ## 🔴 MAINTENANCE & BUGS [ACTIVE]
-* [x] **Bug 001: Fix Unit Test Build & Execution Configuration.**
-    * *Status:* DONE. Makefile now verifies Host GPU availability via dry-run container.
+* [x] Bug 001: Fix Unit Test Build & Execution Configuration.
 
 ## 🟡 EPIC 3: The Mandelbrot Engine (Compute) [READY]
 **Goal:** First fractal render.
-* [ ] **Task 3.1: Concrete Double-Precision Engine.**
+* [ ] Task 3.1: Concrete Double-Precision Engine.
     * *Context:* Plug into Orchestrator.
 
 ## ⚪ EPIC 4: CPU Fallback (SSE Optimized) [PLANNED]
