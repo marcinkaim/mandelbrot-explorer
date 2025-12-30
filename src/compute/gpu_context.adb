@@ -10,7 +10,6 @@ package body GPU_Context is
    procedure Initialize (Self : in out CUDA_Context) is
       Res     : CUresult;
       Dev     : aliased CUdevice;
-      --  Dev_Cnt : aliased int;
    begin
       if Self.Initialized then
          return; -- Idempotency
@@ -23,13 +22,15 @@ package body GPU_Context is
       end if;
 
       -- 2. Find Device
-      Res := cuDeviceGet(Dev'Unchecked_Access, 0);
+      -- Dev is aliased, passed by access (OUT)
+      Res := cuDeviceGet(Dev'Access, 0);
       if Res /= CUDA_SUCCESS then
          raise Program_Error with "cuDeviceGet failed: " & CUresult'Image(Res);
       end if;
 
       -- 3. Create Context
-      Res := cuCtxCreate(Self.Handle'Unchecked_Access, CU_CTX_SCHED_AUTO, Dev);
+      -- Handle is aliased in the record, passed by access (OUT)
+      Res := cuCtxCreate(Self.Handle'Access, CU_CTX_SCHED_AUTO, Dev);
       if Res /= CUDA_SUCCESS then
          raise Program_Error with "cuCtxCreate failed: " & CUresult'Image(Res);
       end if;
@@ -45,14 +46,18 @@ package body GPU_Context is
       Res : CUresult;
    begin
       if Self.Initialized then
+         -- Handle is passed by Value (IN)
          Res := cuCtxDestroy(Self.Handle);
+         
          if Res /= CUDA_SUCCESS then
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, 
                "[GPU] Warning: cuCtxDestroy failed: " & CUresult'Image(Res));
          else
             Ada.Text_IO.Put_Line ("[GPU] Context Destroyed");
          end if;
+         
          Self.Initialized := False;
+         Self.Handle := CUcontext (System.Null_Address);
       end if;
    end Finalize;
 

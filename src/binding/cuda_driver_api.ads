@@ -1,48 +1,59 @@
-with Interfaces.C;
+with Interfaces.C; use Interfaces.C;
+with Interfaces;
 with System;
 
 package CUDA_Driver_API is
    pragma Preelaborate;
 
-   use Interfaces.C;
-
+   ---------------------------------------------------------------------------
+   -- 1. TYPE DEFINITIONS & CONSTANTS
+   ---------------------------------------------------------------------------
+   
    -- Error Handling
    type CUresult is new unsigned;
    CUDA_SUCCESS : constant CUresult := 0;
+
+   -- Opaque Handles (Pointers to Driver Internal Structures)
+   -- These reside in Host RAM, so System.Address is appropriate.
+   type CUdevice    is new int;          -- Device ID is just an integer index
+   type CUcontext   is new System.Address;
+   type CUmodule    is new System.Address;
+   type CUfunction  is new System.Address;
+   type CUstream    is new System.Address;
    
-   -- Opaque Handles (Strong Typing Strategy)
-   -- CUdevice is logically an integer index (0, 1, 2...)
-   type CUdevice is new int;
+   -- CUDA Graph Handles
+   type CUgraph     is new System.Address;
+   type CUgraphNode is new System.Address;
+   type CUgraphExec is new System.Address;
+
+   -- Device Pointer (VRAM Address)
+   -- Physically a 64-bit virtual address on the GPU. 
+   -- Treated as a numeric handle on Host to prevent accidental dereference.
+   type CUdeviceptr is new Interfaces.Unsigned_64;
    
-   -- Pointers to opaque structs in C are mapped as System.Address, 
-   -- but wrapped in distinct types to prevent mixing.
-   type CUcontext is new System.Address;
-   type CUmodule  is new System.Address;
-   type CUfunction is new System.Address;
-   type CUstream  is new System.Address;
-   type CUdeviceptr is new System.Address; -- Unified virtual address space (64-bit)
+   -- Null Handle Constants
+   No_Device_Ptr : constant CUdeviceptr := 0;
 
    -- Flags
    CU_CTX_SCHED_AUTO : constant unsigned := 0;
 
    ---------------------------------------------------------------------------
-   -- API Imports
+   -- 2. INITIALIZATION & CONTEXT MANAGEMENT
    ---------------------------------------------------------------------------
 
    -- Initialize the CUDA driver API.
-   -- Must be called before any other function.
    function cuInit (Flags : unsigned := 0) return CUresult;
    pragma Import (C, cuInit, "cuInit");
 
    -- Returns a handle to a compute device.
    function cuDeviceGet 
-     (device  : access CUdevice; 
+     (device  : access CUdevice; -- OUT
       ordinal : int) return CUresult;
    pragma Import (C, cuDeviceGet, "cuDeviceGet");
 
    -- Create a CUDA context.
    function cuCtxCreate 
-     (pctx  : access CUcontext; 
+     (pctx  : access CUcontext; -- OUT
       flags : unsigned; 
       dev   : CUdevice) return CUresult;
    pragma Import (C, cuCtxCreate, "cuCtxCreate");
@@ -51,76 +62,78 @@ package CUDA_Driver_API is
    function cuCtxDestroy (ctx : CUcontext) return CUresult;
    pragma Import (C, cuCtxDestroy, "cuCtxDestroy");
 
-   -- Wait for context tasks to complete
+   -- Block until the context's tasks are completed.
    function cuCtxSynchronize return CUresult;
    pragma Import (C, cuCtxSynchronize, "cuCtxSynchronize");
 
-   -- Simple memory allocation (Linear)
+   ---------------------------------------------------------------------------
+   -- 3. MEMORY MANAGEMENT
+   ---------------------------------------------------------------------------
+
+   -- Allocate memory on the device.
+   -- Returns the VRAM address into 'dptr'.
    function cuMemAlloc 
-     (dptr      : access CUdeviceptr; 
-      bytesize  : size_t) return CUresult;
+     (dptr     : access CUdeviceptr; -- OUT
+      bytesize : size_t) return CUresult;
    pragma Import (C, cuMemAlloc, "cuMemAlloc");
 
-   -- Free memory
+   -- Free memory on the device.
    function cuMemFree (dptr : CUdeviceptr) return CUresult;
    pragma Import (C, cuMemFree, "cuMemFree");
 
-   ---------------------------------------------------------------------------
-   -- Module & Execution Control
-   ---------------------------------------------------------------------------
-
-   -- Load a generic Compute Module (PTX/Cubin)
-   function cuModuleLoad 
-     (module : access CUmodule; 
-      fname  : char_array) return CUresult;
-   pragma Import (C, cuModuleLoad, "cuModuleLoad");
-
-   -- Get a handle to a kernel function inside a loaded module
-   function cuModuleGetFunction 
-     (hfunc  : access CUfunction; 
-      hmod   : CUmodule; 
-      name   : char_array) return CUresult;
-   pragma Import (C, cuModuleGetFunction, "cuModuleGetFunction");
-
-   -- Launch a kernel on the GPU
-   -- kernelParams: Array of pointers to arguments
-   function cuLaunchKernel 
-     (f             : CUfunction;
-      gridDimX      : unsigned;
-      gridDimY      : unsigned;
-      gridDimZ      : unsigned;
-      blockDimX     : unsigned;
-      blockDimY     : unsigned;
-      blockDimZ     : unsigned;
-      sharedMemBytes: unsigned;
-      hStream       : CUstream;
-      kernelParams  : System.Address; 
-      extra         : System.Address) return CUresult;
-   pragma Import (C, cuLaunchKernel, "cuLaunchKernel");
-
-   ---------------------------------------------------------------------------
-   -- Memory Transfer (Host <-> Device)
-   ---------------------------------------------------------------------------
-
+   -- Copy memory from Host to Device.
    function cuMemcpyHtoD 
-     (dstDevice : CUdeviceptr; 
-      srcHost   : System.Address; 
+     (dstDevice : CUdeviceptr;   -- Handle (Value)
+      srcHost   : System.Address; -- Pointer to Host Buffer
       ByteCount : size_t) return CUresult;
    pragma Import (C, cuMemcpyHtoD, "cuMemcpyHtoD");
 
+   -- Copy memory from Device to Host.
    function cuMemcpyDtoH 
-     (dstHost   : System.Address; 
-      srcDevice : CUdeviceptr; 
+     (dstHost   : System.Address; -- Pointer to Host Buffer
+      srcDevice : CUdeviceptr;   -- Handle (Value)
       ByteCount : size_t) return CUresult;
    pragma Import (C, cuMemcpyDtoH, "cuMemcpyDtoH");
 
    ---------------------------------------------------------------------------
-   -- CUDA Graphs Types
+   -- 4. MODULE & KERNEL EXECUTION (IMMEDIATE MODE)
    ---------------------------------------------------------------------------
-   type CUgraph     is new System.Address;
-   type CUgraphNode is new System.Address;
-   type CUgraphExec is new System.Address;
 
+   -- Load a compute module (PTX/CUBIN).
+   function cuModuleLoad 
+     (module : access CUmodule; -- OUT
+      fname  : char_array) return CUresult;
+   pragma Import (C, cuModuleLoad, "cuModuleLoad");
+
+   -- Get a handle to a kernel function.
+   function cuModuleGetFunction 
+     (hfunc  : access CUfunction; -- OUT
+      hmod   : CUmodule; 
+      name   : char_array) return CUresult;
+   pragma Import (C, cuModuleGetFunction, "cuModuleGetFunction");
+
+   -- Launch a kernel.
+   -- kernelParams: Array of pointers to arguments (System.Address)
+   function cuLaunchKernel 
+     (f              : CUfunction;
+      gridDimX       : unsigned;
+      gridDimY       : unsigned;
+      gridDimZ       : unsigned;
+      blockDimX      : unsigned;
+      blockDimY      : unsigned;
+      blockDimZ      : unsigned;
+      sharedMemBytes : unsigned;
+      hStream        : CUstream;
+      kernelParams   : System.Address; 
+      extra          : System.Address) return CUresult;
+   pragma Import (C, cuLaunchKernel, "cuLaunchKernel");
+
+   ---------------------------------------------------------------------------
+   -- 5. CUDA GRAPHS API
+   ---------------------------------------------------------------------------
+
+   -- Kernel Node Parameters Structure
+   -- Must match C struct layout strictly.
    type CUDA_KERNEL_NODE_PARAMS is record
       func           : CUfunction;
       gridDimX       : unsigned;
@@ -130,11 +143,12 @@ package CUDA_Driver_API is
       blockDimY      : unsigned;
       blockDimZ      : unsigned;
       sharedMemBytes : unsigned;
-      kernelParams   : System.Address; -- void** (tablica wskaźników)
+      kernelParams   : System.Address; -- void** (Array of pointers)
       extra          : System.Address;
    end record;
    pragma Convention (C, CUDA_KERNEL_NODE_PARAMS);
 
+   -- Explicit Representation Clause to ensure alignment matches NVIDIA Driver
    for CUDA_KERNEL_NODE_PARAMS use record
       func           at 0  range 0 .. 63;
       gridDimX       at 8  range 0 .. 31;
@@ -147,43 +161,45 @@ package CUDA_Driver_API is
       kernelParams   at 40 range 0 .. 63;
       extra          at 48 range 0 .. 63;
    end record;
-
-   for CUDA_KERNEL_NODE_PARAMS'Size use 448;
-
-   ---------------------------------------------------------------------------
-   -- CUDA Graphs Functions
-   ---------------------------------------------------------------------------
-
+   -- Total Size check: 56 bytes (64-bit aligned)
+   
+   -- Create a new empty graph.
    function cuGraphCreate 
-     (phGraph : access CUgraph; 
+     (phGraph : access CUgraph; -- OUT
       flags   : unsigned) return CUresult;
    pragma Import (C, cuGraphCreate, "cuGraphCreate");
 
+   -- Destroy a graph.
    function cuGraphDestroy 
      (hGraph : CUgraph) return CUresult;
    pragma Import (C, cuGraphDestroy, "cuGraphDestroy");
 
+   -- Add a kernel node to the graph.
+   -- dependencies: Pointer to array of CUgraphNode handles (System.Address)
    function cuGraphAddKernelNode 
-     (phGraphNode    : access CUgraphNode;
-      hGraph         : CUgraph;
-      dependencies   : System.Address; 
-      numDependencies: size_t;
-      nodeParams     : access CUDA_KERNEL_NODE_PARAMS) return CUresult;
+     (phGraphNode     : access CUgraphNode; -- OUT
+      hGraph          : CUgraph;
+      dependencies    : System.Address; 
+      numDependencies : size_t;
+      nodeParams      : access CUDA_KERNEL_NODE_PARAMS) return CUresult;
    pragma Import (C, cuGraphAddKernelNode, "cuGraphAddKernelNode");
 
+   -- Create an executable graph from a graph template.
    function cuGraphInstantiate 
-     (phGraphExec : access CUgraphExec;
+     (phGraphExec : access CUgraphExec; -- OUT
       hGraph      : CUgraph;
-      pLogBuffer  : System.Address; -- char*
+      pLogBuffer  : System.Address;     -- Optional error log buffer
       bufferSize  : size_t;
       flags       : unsigned) return CUresult;
    pragma Import (C, cuGraphInstantiate, "cuGraphInstantiate");
 
+   -- Launch an executable graph.
    function cuGraphLaunch 
      (hGraphExec : CUgraphExec;
       hStream    : CUstream) return CUresult;
    pragma Import (C, cuGraphLaunch, "cuGraphLaunch");
 
+   -- Destroy an executable graph.
    function cuGraphExecDestroy 
      (hGraphExec : CUgraphExec) return CUresult;
    pragma Import (C, cuGraphExecDestroy, "cuGraphExecDestroy");

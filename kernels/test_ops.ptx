@@ -1,0 +1,135 @@
+// ============================================================================
+// HEADER SECTION
+// ============================================================================
+.version 7.0             // PTX ISA Version
+.target sm_50            // Target Architecture (Maxwell or newer)
+.address_size 64         // 64-bit addressing (Standard for modern HPC)
+
+// ============================================================================
+// KERNEL 1: ARGUMENT MARSHALING TEST
+// Name: test_sum_8_ints
+// Purpose: Verifies that the Host correctly passes a long list of arguments
+//          via the kernel parameter stack.
+// Logic: *out_ptr = a + b + c + d + e + f + g + h
+// ============================================================================
+.visible .entry test_sum_8_ints(
+    .param .s32 param_a,
+    .param .s32 param_b,
+    .param .s32 param_c,
+    .param .s32 param_d,
+    .param .s32 param_e,
+    .param .s32 param_f,
+    .param .s32 param_g,
+    .param .s32 param_h,
+    .param .u64 param_out_ptr
+)
+{
+    // --- 1. Register Declaration ---
+    // We need 32-bit registers for integers and 64-bit for the pointer.
+    .reg .s32 %r_val<8>;     // Array of 8 registers for inputs
+    .reg .s32 %r_sum;        // Accumulator
+    .reg .u64 %r_out_ptr;    // Output memory address
+
+    // --- 2. Load Parameters ---
+    // Move data from ".param" state space (Argument Stack) to Virtual Registers.
+    ld.param.s32 %r_val0, [param_a];
+    ld.param.s32 %r_val1, [param_b];
+    ld.param.s32 %r_val2, [param_c];
+    ld.param.s32 %r_val3, [param_d];
+    ld.param.s32 %r_val4, [param_e];
+    ld.param.s32 %r_val5, [param_f];
+    ld.param.s32 %r_val6, [param_g];
+    ld.param.s32 %r_val7, [param_h];
+    ld.param.u64 %r_out_ptr, [param_out_ptr];
+
+    // --- 3. Computation (ALU Ops) ---
+    // Chain additions.
+    add.s32 %r_sum, %r_val0, %r_val1;
+    add.s32 %r_sum, %r_sum,  %r_val2;
+    add.s32 %r_sum, %r_sum,  %r_val3;
+    add.s32 %r_sum, %r_sum,  %r_val4;
+    add.s32 %r_sum, %r_sum,  %r_val5;
+    add.s32 %r_sum, %r_sum,  %r_val6;
+    add.s32 %r_sum, %r_sum,  %r_val7;
+
+    // --- 4. Store Result ---
+    // Write the result back to Global Memory (VRAM).
+    st.global.s32 [%r_out_ptr], %r_sum;
+
+    ret;
+}
+
+// ============================================================================
+// KERNEL 2: BUFFER FILLING TEST
+// Name: test_fill_buffer
+// Purpose: Verifies VRAM writing and Thread Indexing logic.
+// Logic: if (x < w && y < h) buffer[y * w + x] = y * w + x;
+// ============================================================================
+.visible .entry test_fill_buffer(
+    .param .s32 param_width,
+    .param .s32 param_height,
+    .param .u64 param_buffer_ptr
+)
+{
+    // --- 1. Register Declaration ---
+    .reg .s32 %r_tid_x, %r_tid_y;       // threadIdx
+    .reg .s32 %r_ntid_x, %r_ntid_y;     // blockDim
+    .reg .s32 %r_ctaid_x, %r_ctaid_y;   // blockIdx
+    .reg .s32 %r_idx, %r_idy;           // Global X, Y
+    .reg .s32 %r_width, %r_height;      // Dimensions
+    .reg .pred %p_in_bounds;            // Predicate (boolean flag)
+    .reg .s32 %r_linear_idx;            // 1D Index
+    .reg .u64 %r_buffer_base;           // Base Pointer
+    .reg .u64 %r_offset;                // Byte Offset
+    .reg .u64 %r_target_addr;           // Final Address
+
+    // --- 2. Load Dimensions & Pointer ---
+    ld.param.s32 %r_width, [param_width];
+    ld.param.s32 %r_height, [param_height];
+    ld.param.u64 %r_buffer_base, [param_buffer_ptr];
+
+    // --- 3. Compute Global X Coordinate ---
+    // Formula: idx = ctaid.x * ntid.x + tid.x
+    mov.u32 %r_tid_x,   %tid.x;     // Load special register
+    mov.u32 %r_ntid_x,  %ntid.x;
+    mov.u32 %r_ctaid_x, %ctaid.x;
+    // mad.lo = Multiply-Add (Low bits)
+    mad.lo.s32 %r_idx, %r_ctaid_x, %r_ntid_x, %r_tid_x;
+
+    // --- 4. Compute Global Y Coordinate ---
+    // Formula: idy = ctaid.y * ntid.y + tid.y
+    mov.u32 %r_tid_y,   %tid.y;
+    mov.u32 %r_ntid_y,  %ntid.y;
+    mov.u32 %r_ctaid_y, %ctaid.y;
+    mad.lo.s32 %r_idy, %r_ctaid_y, %r_ntid_y, %r_tid_y;
+
+    // --- 5. Bounds Check (Guarded Execution) ---
+    // Check: (r_idx < r_width) AND (r_idy < r_height)
+    setp.lt.s32 %p_in_bounds, %r_idx, %r_width;
+    
+    // Combine with Y check
+    // If X was OK, check Y. If X was bad, result remains false.
+    @%p_in_bounds setp.lt.s32 %p_in_bounds, %r_idy, %r_height;
+
+    // If check failed (%p_in_bounds == false), exit immediately.
+    @!%p_in_bounds ret;
+
+    // --- 6. Address Calculation ---
+    // Linear Index: r_linear_idx = r_idy * r_width + r_idx
+    mad.lo.s32 %r_linear_idx, %r_idy, %r_width, %r_idx;
+
+    // Convert 32-bit index to 64-bit offset (assuming 4 bytes per int)
+    // We use mul.wide to multiply 32-bit index by 4 and store in 64-bit reg
+    // Or simpler: convert to u64 and shift left by 2 (mul by 4)
+    cvt.u64.s32 %r_offset, %r_linear_idx;
+    shl.b64     %r_offset, %r_offset, 2; 
+
+    // Add offset to base pointer
+    add.u64 %r_target_addr, %r_buffer_base, %r_offset;
+
+    // --- 7. Store Data ---
+    // We write the linear index as the value (for verification pattern)
+    st.global.s32 [%r_target_addr], %r_linear_idx;
+
+    ret;
+}
