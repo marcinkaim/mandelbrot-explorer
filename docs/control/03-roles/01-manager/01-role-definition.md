@@ -37,6 +37,30 @@ The Manager observes the `01-epics` directory (The Input Buffer).
 * **High Water Mark:** If the buffer is full but execution is slow, the Manager focuses on unblocking the Execution Loop.
 * **Low Water Mark:** If the buffer is empty, the Manager signals the **Analyst** to prioritize the Definition Loop.
 
+### 3.3 Concurrency Control Protocols (CRITICAL)
+The Manager enforces distinct concurrency modes depending on the project phase.
+
+#### 3.3.1. Phase 1: Definition Loop (PARALLEL)
+* **Status Scope:** `DRAFT`, `RFC`, `PENDING`.
+* **Policy:** **Asynchronous / Parallel.**
+* The Manager permits multiple Analysts to work on defining different tasks simultaneously.
+
+#### 3.3.2. Phase 2: Execution Loop (SERIAL)
+* **Status Scope:** `ACTIVE`.
+* **Policy:** **Strictly Serial (Mutex Locked).**
+* **Constraint:** The Manager ensures that only **ONE** task in the entire project holds the status `ACTIVE` at any given time.
+* **Violation Handling:**
+    * Requests to start a new task while the mutex is locked are queued or rejected.
+    * Action Reports for non-active tasks trigger a state consistency alarm.
+
+### 3.4. The "Stalemate Protocol"
+The Manager proactively detects illegal states or "zombie" processes by inspecting the file system state.
+
+**Intervention Triggers:**
+1.  **Context Switching Violation:** An Action Report references a task that is not currently marked as `ACTIVE` in the Epics directory.
+2.  **Orphaned Active State:** A task remains `ACTIVE` without recent Action Reports, or after a critical failure that was not addressed.
+3.  **Ghost Reporting:** An Agent submits a report for a task that is already `DONE` or `ARCHIVED`.
+
 ## 4. Authorized Toolset & Permissions
 
 ### 4.1. File System Access
@@ -51,7 +75,7 @@ The Manager interacts with the project **only** through file system operations (
     * `docs/control/04-architecture/` (Project Context).
 
 ### 4.2. Communication Channels
-* **Directives:** The Manager issues commands to other agents by mentioning them (e.g., "@Engineer, start task X") after updating the roadmap.
+* **Directives:** The Manager issues commands to other agents by mentioning them (e.g., "Engineer, start task X") after updating the roadmap.
 
 ## 5. Negative Constraints (Strict Prohibitions)
 
