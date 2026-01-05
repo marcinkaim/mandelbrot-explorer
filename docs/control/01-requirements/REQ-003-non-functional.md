@@ -20,6 +20,12 @@ The system must leverage the Ada/SPARK type system to guarantee absence of runti
 ### 1.2 Hermetic State
 * **Requirement:** Global mutable state is prohibited. All state must be encapsulated within Task objects or protected objects.
 
+### 1.3 Mathematical Verification Strategy [UPDATED]
+* **Requirement:** To mitigate the risk of silent numerical errors in GPU hardware or PTX kernels, the system must implement an automated "Verification Oracle".
+* **Mechanism:** A CPU-based reference implementation (Source of Truth) must be available in the test suite.
+* **Validation:** Every release build must pass a comparison test where GPU results match CPU results within a tolerance of $\epsilon = 1.0 \times 10^{-12}$.
+* **Traceability:** Implemented by `task-3.2-verification-oracle`.
+
 ## 2. Performance Limits
 * **Requirement:** The system must maintain responsiveness during heavy computation.
 * **Metric:** UI thread must never freeze for > 16ms (60 FPS target).
