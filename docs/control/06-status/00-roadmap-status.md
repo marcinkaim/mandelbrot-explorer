@@ -15,7 +15,8 @@
 
 | ID | Name | Priority | Status | Owner |
 | :--- | :--- | :--- | :--- | :--- |
-| **X.X** | *(No active tasks)* | - | - | - |
+| **3.1** | Compute Engine (FP64) | Critical | **ACTIVE** | **Engineer** |
+| **3.2** | Verification Oracle | High | **PENDING** | - |
 
 ---
 
