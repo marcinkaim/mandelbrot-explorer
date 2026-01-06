@@ -178,6 +178,38 @@ read -r -d '' HEADER_SHELL << EOM || true
 ################################################################################
 EOM
 
+# --- SAFE HEADER DEFINITIONS (ASCII HEX) ---
+# \x3C = <
+# \x21 = !
+# \x2D = -
+H_START=$(printf "\x3C\x21\x2D\x2D")
+
+# \x2D = -
+# \x3E = >
+H_END=$(printf "\x2D\x2D\x3E")
+
+# 4. Markdown Style (HTML Comment)
+# Note: Invisible in rendered view, visible in source.
+read -r -d '' HEADER_MARKDOWN << EOM || true
+$H_START
+  $PROJECT_NAME_DISPLAY
+  Copyright (C) $YEAR $OWNER
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+$H_END
+EOM
+
 # --- LOGIC ---
 
 apply_header() {
@@ -240,26 +272,41 @@ apply_header() {
 
 # --- EXECUTION LOOP ---
 
-TARGET_DIRS="src tests kernels docker scripts"
+TARGET_DIRS="src tests kernels docker scripts docs"
 echo -e "${BLUE}[INFO] Scanning directories: $TARGET_DIRS ${NC}"
 
-while read -r file; do
-    case "$file" in
-        *.ads|*.adb|*.gpr)
-            apply_header "$file" "ADA" "$HEADER_ADA"
-            ;;
-        *.c|*.h|*.cpp|*.hpp|*.cu|*.ptx)
-            apply_header "$file" "CPP" "$HEADER_CPP"
-            ;;
-        *.sh|*/Containerfile|*/Makefile|Makefile)
-            apply_header "$file" "SHELL" "$HEADER_SHELL"
-            ;;
-        *)
-            ;;
-    esac
-done < <(find $TARGET_DIRS -type f)
+if [ -d "src" ]; then # Simple check to avoid errors if run in wrong dir
+    while read -r file; do
+        filename=$(basename "$file")
+        
+        # EXCLUSION: Skip README.md anywhere (root or subdirs)
+        if [[ "$filename" == "README.md" ]]; then
+            continue
+        fi
 
-# Check root files
+        case "$file" in
+            *.ads|*.adb|*.gpr)
+                apply_header "$file" "ADA" "$HEADER_ADA"
+                ;;
+            *.c|*.h|*.cpp|*.hpp|*.cu|*.ptx)
+                apply_header "$file" "CPP" "$HEADER_CPP"
+                ;;
+            *.sh|*/Containerfile|*/Makefile|Makefile)
+                apply_header "$file" "SHELL" "$HEADER_SHELL"
+                ;;
+            *.md)
+                apply_header "$file" "MARKDOWN" "$HEADER_MARKDOWN"
+                ;;
+            *)
+                ;;
+        esac
+    done < <(find $TARGET_DIRS -type f 2>/dev/null)
+else
+    echo -e "${RED}[ERROR] Directory structure not recognized. Run from project root.${NC}"
+    exit 1
+fi
+
+# Check specific root files
 for root_file in Makefile mandelbrot_explorer.gpr; do
     if [[ -f "$root_file" ]]; then
         if [[ "$root_file" == "Makefile" ]]; then

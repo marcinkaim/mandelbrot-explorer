@@ -1,3 +1,21 @@
+<!--
+  Mandelbrot Explorer
+  Copyright (C) 2026 Marcin Kaim
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
 # REQ-003: Non-Functional Requirements (Safety & Integrity)
 
 * **Type:** Non-Functional
@@ -35,3 +53,8 @@ The system must leverage the Ada/SPARK type system to guarantee absence of runti
 * **OS:** Debian 13 (Trixie) or newer.
 * **Hardware:** NVIDIA GPU with proprietary drivers (535+).
 * **Compiler:** GNAT FSF 13+ / SPARK 2014 compatible.
+
+## 4. Legal & Compliance
+* **Requirement:** The codebase must maintain strict compliance with the GPLv3 license.
+* **Validation:** All manual source files must contain the standard GPLv3 header preamble.
+* **Automation:** Compliance must be verified automatically during the CI/CD process (Auditor role).
