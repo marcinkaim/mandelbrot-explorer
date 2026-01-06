@@ -1,3 +1,5 @@
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 # Mandelbrot Explorer
 
 High-performance Mandelbrot set explorer built with **Ada 2022**, **CUDA**, and **SDL2**.
@@ -123,4 +125,6 @@ make push
 
 ## 📜 License
 
-This project is licensed under the **MIT License**. See the `LICENSE` file for details.
+**Mandelbrot Explorer** is Free Software: you can redistribute it and/or modify it under the terms of the **GNU General Public License v3.0** as published by the Free Software Foundation.
+
+This project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY. See the [`LICENSE`](LICENSE) file for more details.

@@ -1,4 +1,23 @@
 #!/bin/bash
+
+################################################################################
+#  Mandelbrot Explorer
+#  Copyright (C) 2026 Marcin Kaim
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+################################################################################
+
 set -euo pipefail
 
 # --- Configuration ---
@@ -9,6 +28,7 @@ REMOTE_NAME="origin"
 GREEN="\033[0;32m"
 BLUE="\033[0;34m"
 RED="\033[0;31m"
+YELLOW="\033[1;33m"
 NC="\033[0m" # No Color
 
 echo -e "${BLUE}--- Git Sync Process (GitHub) ---${NC}"
@@ -29,13 +49,27 @@ if [ -z "${GITHUB_USER:-}" ] || [ -z "${GITHUB_REPO:-}" ] || [ -z "${GITHUB_TOKE
     exit 1
 fi
 
-# 2. Define URLs
+# 2. Pre-flight Check: Integrity Verification
+# We must ensure we are not pushing a state that differs from what is on disk.
+# 'git status --porcelain' outputs nothing if the directory is clean.
+
+if [ -n "$(git status --porcelain)" ]; then
+    echo -e "${RED}[ERROR] Dirty working directory detected!${NC}"
+    echo -e "You have uncommitted changes. Git only pushes committed code."
+    echo -e "${YELLOW}--- Modified/Untracked Files ---${NC}"
+    git status --short
+    echo -e "${YELLOW}--------------------------------${NC}"
+    echo -e "Action required: Review changes (e.g., license headers), commit them, and try again."
+    exit 1
+fi
+
+# 3. Define URLs
 # Standard URL for fetch/public access (safe to store in .git/config)
 REMOTE_URL="https://github.com/${GITHUB_USER}/${GITHUB_REPO}.git"
 # Auth URL for push actions (contains token, kept in memory only)
 AUTH_REMOTE_URL="https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}.git"
 
-# 3. Configure Remote
+# 4. Configure Remote
 # We ensure 'origin' points to the repo, but we don't save the token there.
 
 if ! git remote | grep -q "^${REMOTE_NAME}$"; then
@@ -46,7 +80,7 @@ else
     git remote set-url "${REMOTE_NAME}" "${REMOTE_URL}"
 fi
 
-# 4. Push Code
+# 5. Push Code
 # Verify we are on a branch
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 echo "[INFO] Pushing branch: ${CURRENT_BRANCH}..."
@@ -59,7 +93,7 @@ else
     exit 1
 fi
 
-# 5. Push Tags (if any)
+# 6. Push Tags (if any)
 echo "[INFO] Pushing tags..."
 if git push "${AUTH_REMOTE_URL}" --tags; then
     echo -e "${GREEN}[SUCCESS] Tags pushed successfully.${NC}"

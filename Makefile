@@ -1,4 +1,21 @@
-# Container-Forge Makefile
+################################################################################
+#  Mandelbrot Explorer
+#  Copyright (C) 2026 Marcin Kaim
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+################################################################################
+
 # Handles build environment lifecycle, artifact compilation, and git sync.
 
 IMAGE_NAME = mandelbrot-builder
@@ -12,14 +29,14 @@ HOST_GID = $(shell id -g)
 
 GPU_FLAGS = --device nvidia.com/gpu=all --security-opt=label=disable
 
-.PHONY: all init build-image build shell clean push test
+.PHONY: all license-check build-image build shell clean push test
 
-all: build
+all: license-check build
 
-# 1. Initialize Repository Structure
-init:
-	@echo "[Make] Initializing repository..."
-	@bash init_repo.sh
+# 1. License Check
+license-check:
+	@echo "--- [LICENSE] Ensuring GPLv3 headers compliance ---"
+	@./scripts/ensure_license_headers.sh
 
 # 2. Build the Docker/Podman Image
 build-image:
@@ -68,7 +85,7 @@ shell:
 		/bin/bash
 
 # 5. Git Sync / Push to GitHub
-push:
+push: license-check
 	@echo "[Make] Pushing to GitHub..."
 	@bash $(SCRIPTS_DIR)/push_repo.sh
 

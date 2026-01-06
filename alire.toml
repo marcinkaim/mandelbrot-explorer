@@ -1,5 +1,6 @@
+# Title: Mandelbrot Explorer
 name = "mandelbrot_explorer"
-description = "Mandelbrot set explorer using Ada 2022, SDL2 and CUDA"
+description = "A hardware-accelerated Mandelbrot renderer"
 version = "0.1.0-dev"
 
 authors = ["Marcin Kaim"]
