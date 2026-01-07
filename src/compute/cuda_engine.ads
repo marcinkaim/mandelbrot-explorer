@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
---  
+--  Mandelbrot Explorer
 --  Copyright (C) 2026 Marcin Kaim
 --
 --  This program is free software: you can redistribute it and/or modify

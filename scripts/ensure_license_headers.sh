@@ -97,7 +97,7 @@ if [ -f "$ALIRE_MANIFEST" ]; then
         echo -e "${RED}[ERROR] Could not read Application Name from alire.toml.${NC}"
     fi
 else
-    PROJECT_NAME_DISPLAY="$PROJECT_NAME"
+    PROJECT_NAME_DISPLAY=$(basename "$PWD" | sed -E 's/[-_]/ /g; s/\b\w/\U&/g')
     echo -e "${RED}[ERROR] alire.toml not found.${NC}"
 fi
 
@@ -118,7 +118,7 @@ echo -e "       Config: Owner='${OWNER}', Year='${YEAR}', Project='${PROJECT_NAM
 # 1. ADA Style (-- )
 read -r -d '' HEADER_ADA << EOM || true
 --------------------------------------------------------------------------------
---  $PROJECT_NAME
+--  $PROJECT_NAME_DISPLAY
 --  Copyright (C) $YEAR $OWNER
 --
 --  This program is free software: you can redistribute it and/or modify
@@ -139,7 +139,7 @@ EOM
 # 2. C/C++/CUDA/PTX Style (// )
 read -r -d '' HEADER_CPP << EOM || true
 //------------------------------------------------------------------------------
-//  $PROJECT_NAME
+//  $PROJECT_NAME_DISPLAY
 //  Copyright (C) $YEAR $OWNER
 //
 //  This program is free software: you can redistribute it and/or modify
@@ -160,7 +160,7 @@ EOM
 # 3. Shell/Make/Docker Style (# )
 read -r -d '' HEADER_SHELL << EOM || true
 ################################################################################
-#  $PROJECT_NAME
+#  $PROJECT_NAME_DISPLAY
 #  Copyright (C) $YEAR $OWNER
 #
 #  This program is free software: you can redistribute it and/or modify
