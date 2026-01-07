@@ -33,7 +33,7 @@
 
 | ID | Name | Priority | Status | Owner |
 | :--- | :--- | :--- | :--- | :--- |
-| **3.1** | Compute Engine (FP64) | Critical | **AUDIT** | **Auditor** |
+| **3.1** | Compute Engine (FP64) | Critical | **ACTIVE** | **Engineer** |
 | **3.2** | Verification Oracle | High | **ACTIVE** | **Engineer** |
 
 ---
