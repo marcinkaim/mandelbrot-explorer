@@ -1,0 +1,140 @@
+//------------------------------------------------------------------------------
+//  
+//  Copyright (C) 2026 Marcin Kaim
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//------------------------------------------------------------------------------
+
+.version 7.0
+.target sm_50
+.address_size 64
+
+.visible .entry mandelbrot_fp64_kernel (
+    .param .f64 param_min_x,
+    .param .f64 param_min_y,
+    .param .f64 param_step,
+    .param .u32 param_width,
+    .param .u32 param_max_iter,
+    .param .u64 param_output_ptr
+)
+{
+    // --- 1. Registers ---
+    .reg .pred %p_exit, %p_loop, %p_esc;
+    
+    .reg .u32 %r_tid_x, %r_ntid_x, %r_ctaid_x, %r_gx;
+    .reg .u32 %r_tid_y, %r_ntid_y, %r_ctaid_y, %r_gy;
+    .reg .u32 %r_width, %r_max_iter, %r_iter;
+    .reg .u32 %r_idx_lin;
+
+    .reg .f64 %fd_min_x, %fd_min_y, %fd_step;
+    .reg .f64 %fd_cx, %fd_cy;
+    .reg .f64 %fd_zx, %fd_zy;
+    .reg .f64 %fd_zx2, %fd_zy2;
+    .reg .f64 %fd_mag, %fd_four;
+    .reg .f64 %fd_tmp;
+
+    .reg .f32 %f_mag, %f_log_z2, %f_log_z, %f_loglog, %f_iter, %f_res;
+
+    .reg .u64 %rd_out_base, %rd_offset, %rd_final_addr;
+
+    // --- 2. Indexing ---
+    mov.u32 %r_ctaid_x, %ctaid.x;
+    mov.u32 %r_ntid_x,  %ntid.x;
+    mov.u32 %r_tid_x,   %tid.x;
+    mad.lo.u32 %r_gx, %r_ctaid_x, %r_ntid_x, %r_tid_x;
+
+    mov.u32 %r_ctaid_y, %ctaid.y;
+    mov.u32 %r_ntid_y,  %ntid.y;
+    mov.u32 %r_tid_y,   %tid.y;
+    mad.lo.u32 %r_gy, %r_ctaid_y, %r_ntid_y, %r_tid_y;
+
+    ld.param.u32 %r_width, [param_width];
+    setp.ge.u32 %p_exit, %r_gx, %r_width;
+    @%p_exit ret;
+
+    // Linear Index
+    mad.lo.u32 %r_idx_lin, %r_gy, %r_width, %r_gx;
+
+    // --- 3. Setup Coordinates ---
+    ld.param.f64 %fd_min_x, [param_min_x];
+    ld.param.f64 %fd_min_y, [param_min_y];
+    ld.param.f64 %fd_step,  [param_step];
+    ld.param.u32 %r_max_iter, [param_max_iter];
+    
+    mov.f64 %fd_four, 4.0;
+
+    // Cx = min_x + x * step
+    cvt.rn.f64.u32 %fd_tmp, %r_gx;
+    fma.rn.f64 %fd_cx, %fd_tmp, %fd_step, %fd_min_x;
+
+    // Cy = min_y + y * step
+    cvt.rn.f64.u32 %fd_tmp, %r_gy;
+    fma.rn.f64 %fd_cy, %fd_tmp, %fd_step, %fd_min_y;
+
+    // Z = 0
+    mov.f64 %fd_zx, 0.0;
+    mov.f64 %fd_zy, 0.0;
+    mov.f64 %fd_zx2, 0.0;
+    mov.f64 %fd_zy2, 0.0;
+    mov.u32 %r_iter, 0;
+
+    // --- 4. Main Loop ---
+$L_loop:
+    setp.ge.u32 %p_loop, %r_iter, %r_max_iter;
+    @%p_loop bra $L_inside;
+
+    add.f64 %fd_mag, %fd_zx2, %fd_zy2;
+    setp.gt.f64 %p_esc, %fd_mag, %fd_four;
+    @%p_esc bra $L_escaped;
+
+    // Zy = 2*Zx*Zy + Cy
+    mul.rn.f64 %fd_tmp, %fd_zx, %fd_zy;
+    add.f64 %fd_tmp, %fd_tmp, %fd_tmp;
+    add.f64 %fd_zy, %fd_tmp, %fd_cy;
+
+    // Zx = Zx2 - Zy2 + Cx
+    sub.f64 %fd_tmp, %fd_zx2, %fd_zy2;
+    add.f64 %fd_zx, %fd_tmp, %fd_cx;
+
+    // Update Squares
+    mul.rn.f64 %fd_zx2, %fd_zx, %fd_zx;
+    mul.rn.f64 %fd_zy2, %fd_zy, %fd_zy;
+
+    add.u32 %r_iter, %r_iter, 1;
+    bra $L_loop;
+
+    // --- 5. Output Logic ---
+$L_escaped:
+    // nu = iter + 1 - log2(0.5 * log2(Z2))
+    cvt.rn.f32.f64 %f_mag, %fd_mag;
+    lg2.approx.f32 %f_log_z2, %f_mag;
+    mul.f32 %f_log_z, %f_log_z2, 0.5;
+    lg2.approx.f32 %f_loglog, %f_log_z;
+    
+    cvt.rn.f32.u32 %f_iter, %r_iter;
+    add.f32 %f_res, %f_iter, 1.0;
+    sub.f32 %f_res, %f_res, %f_loglog;
+    bra $L_store;
+
+$L_inside:
+    mov.f32 %f_res, 0.0;
+
+$L_store:
+    ld.param.u64 %rd_out_base, [param_output_ptr];
+    cvt.u64.u32 %rd_offset, %r_idx_lin;
+    shl.b64 %rd_offset, %rd_offset, 2;
+    add.u64 %rd_final_addr, %rd_out_base, %rd_offset;
+    st.global.f32 [%rd_final_addr], %f_res;
+    ret;
+}

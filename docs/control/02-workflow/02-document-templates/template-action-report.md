@@ -21,9 +21,7 @@
 * **Sequence ID:** AR-[XX] (e.g., AR-01, AR-02)
 * **Date:** YYYY-MM-DD
 * **Role:** [ENGINEER | DEVOPS | AUDITOR | TESTER]
-* **Agent:** [Name/Version]
 * **Input Commit:** [Hash before action]
-* **Output Commit:** [Hash after action (if changed)]
 * **Outcome:** [SUCCESS | FAILURE | NEEDS_REWORK]
 
 ## 1. Executive Summary

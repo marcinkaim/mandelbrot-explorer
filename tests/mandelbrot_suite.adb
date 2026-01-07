@@ -16,6 +16,7 @@
 --  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------------
 
+with Test_CUDA_Engine;
 with Test_CUDA_Init;
 with Test_CUDA_Kernel;
 with Test_CUDA_Graph;
@@ -27,6 +28,7 @@ package body Mandelbrot_Suite is
    package Init_Caller is new AUnit.Test_Caller (Test_CUDA_Init.Test_Case);
    package Kernel_Caller is new AUnit.Test_Caller (Test_CUDA_Kernel.Test_Case);
    package Graph_Caller is new AUnit.Test_Caller (Test_CUDA_Graph.Test_Case);
+   package CUDA_Engine_Caller is new AUnit.Test_Caller (Test_CUDA_Engine.Test_Case);
 
    function Suite return Access_Test_Suite is
       Result : constant Access_Test_Suite := new Test_Suite;
@@ -51,6 +53,9 @@ package body Mandelbrot_Suite is
       
       Result.Add_Test
         (Graph_Caller.Create ("CUDA Graph Execution (Dependent Chain)", Test_CUDA_Graph.Test_Dependent_Graph_Execution'Access));
+
+      Result.Add_Test
+        (CUDA_Engine_Caller.Create ("CUDA Engine (FP64)", Test_CUDA_Engine.Test_FP64_Render'Access));
 
       return Result;
    end Suite;

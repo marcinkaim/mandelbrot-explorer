@@ -38,6 +38,7 @@ package CUDA_Driver_API is
    type CUmodule    is new System.Address;
    type CUfunction  is new System.Address;
    type CUstream    is new System.Address;
+   type CUgraphicsResource is new System.Address;
    
    -- CUDA Graph Handles
    type CUgraph     is new System.Address;
@@ -45,15 +46,22 @@ package CUDA_Driver_API is
    type CUgraphExec is new System.Address;
 
    -- Device Pointer (VRAM Address)
-   -- Physically a 64-bit virtual address on the GPU. 
+   -- Physically a 64-bit virtual address on the GPU.
    -- Treated as a numeric handle on Host to prevent accidental dereference.
    type CUdeviceptr is new Interfaces.Unsigned_64;
-   
+
    -- Null Handle Constants
    No_Device_Ptr : constant CUdeviceptr := 0;
 
    -- Flags
    CU_CTX_SCHED_AUTO : constant unsigned := 0;
+   
+   -- Graphics Register Flags
+   CU_GRAPHICS_REGISTER_FLAGS_NONE : constant unsigned := 0;
+   
+   -- Graphics Map Flags
+   CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE : constant unsigned := 0;
+   CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD : constant unsigned := 2;
 
    ---------------------------------------------------------------------------
    -- 2. INITIALIZATION & CONTEXT MANAGEMENT
@@ -221,5 +229,37 @@ package CUDA_Driver_API is
    function cuGraphExecDestroy 
      (hGraphExec : CUgraphExec) return CUresult;
    pragma Import (C, cuGraphExecDestroy, "cuGraphExecDestroy");
+
+   ---------------------------------------------------------------------------
+   -- 6. GRAPHICS INTEROP (Needed for PBO)
+   ---------------------------------------------------------------------------
+
+   function cuGraphicsGLRegisterBuffer 
+     (pCudaResource : access CUgraphicsResource; -- OUT
+      buffer        : unsigned; -- GLuint
+      Flags         : unsigned) return CUresult;
+   pragma Import (C, cuGraphicsGLRegisterBuffer, "cuGraphicsGLRegisterBuffer");
+   
+   function cuGraphicsUnregisterResource
+     (resource : CUgraphicsResource) return CUresult;
+   pragma Import (C, cuGraphicsUnregisterResource, "cuGraphicsUnregisterResource");
+   
+   function cuGraphicsMapResources 
+     (count     : unsigned; 
+      resources : System.Address; -- Array of CUgraphicsResource
+      stream    : CUstream) return CUresult;
+   pragma Import (C, cuGraphicsMapResources, "cuGraphicsMapResources");
+   
+   function cuGraphicsUnmapResources 
+     (count     : unsigned; 
+      resources : System.Address; -- Array of CUgraphicsResource
+      stream    : CUstream) return CUresult;
+   pragma Import (C, cuGraphicsUnmapResources, "cuGraphicsUnmapResources");
+   
+   function cuGraphicsResourceGetMappedPointer 
+     (pDevPtr  : access CUdeviceptr; -- OUT
+      pSize    : access size_t;      -- OUT (Optional)
+      resource : CUgraphicsResource) return CUresult;
+   pragma Import (C, cuGraphicsResourceGetMappedPointer, "cuGraphicsResourceGetMappedPointer");
 
 end CUDA_Driver_API;

@@ -57,6 +57,8 @@ build:
 		$(IMAGE_NAME) \
 		alr build
 
+rebuild: clean build
+
 test:
 	@echo "[Make] Verifying Host NVIDIA Drivers via Container Runtime..."
 	@# Próbujemy uruchomić pusty kontener z żądaniem dostępu do GPU.
