@@ -39,7 +39,7 @@ The Engineer executes their duties by following specific technical scenarios tha
 
 ### 2.3. Generating Action Reports (`04-scenario-generating-report.md`)
 * **Goal:** Formally hand over work to the next stage.
-* **Mechanism:** The Engineer does not simply "finish" work. They must compile comprehensive evidence (Screenshots, Logs, Proof Summaries) into an **Action Report (AR)**.
+* **Mechanism:** The Engineer does not simply "finish" work. They must compile comprehensive evidence (Screenshots, Logs, Proof Summaries) and **anchor the work to the repository history** (`Input Commit`) into an **Action Report (AR)**.
 * **Reference:** See `04-scenario-generating-report.md` for the strict template and metadata required to trigger the Manager.
 
 ## 3. Domains of Responsibility

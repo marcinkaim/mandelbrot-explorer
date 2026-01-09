@@ -23,7 +23,7 @@
 * **Date:** YYYY-MM-DD
 * **Role:** [ENGINEER | DEVOPS | AUDITOR | TESTER]
 * **Input Commit:** [Hash before action]
-* **Outcome:** [SUCCESS | FAILURE | NEEDS_REWORK]
+* **Outcome:** [SUCCESS | FAILURE | NEEDS_INFO]
 
 ## 1. Executive Summary
 > **Outcome:** Briefly describe the final result. What was achieved?
