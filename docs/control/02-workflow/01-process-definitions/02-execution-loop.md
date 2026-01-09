@@ -100,51 +100,39 @@ flowchart TD
 * **Work:** Modifies `src/`, creates `tests/`.
 * **Self-Correction:** Runs local build (`make build`).
 * **Submission:**
-1. Creates folder: `docs/control/05-tasks/02-reports/task-X.Y/`.
-2. Generates Report: `AR-01-engineer-success.md` using `template-action-report.md`.
-3. **Outcome:** `SUCCESS` (moves to Audit) or `NEEDS_INFO` (escalates to Phase 1).
-
-
+    1. Creates folder: `docs/control/05-tasks/02-reports/task-X.Y/`.
+    2. Generates Report: `AR-01-engineer-success.md` using `template-action-report.md`.
+* **Outcome:** `SUCCESS` (moves to Audit) or `NEEDS_INFO` (escalates to Phase 1).
 
 ### Step 3: Static Audit (Auditor)
 
 * **Trigger:** Appearance of Engineer's AR with `SUCCESS`.
 * **Action:** Review code changes (Diff).
-* Check 1: Does it violate `ADR-005` (Architecture)?
-* Check 2: Are there forbidden types (e.g., `Unchecked_Conversion` without justification)?
-* Check 3: Is the code readable?
-
-
+    * Check 1: Does it violate `ADR-005` (Architecture)?
+    * Check 2: Are there forbidden types (e.g., `Unchecked_Conversion` without justification)?
+    * Check 3: Is the code readable?
 * **Submission:**
-* Generates `AR-02-auditor-outcome.md`.
+    * Generates `AR-02-auditor-outcome.md`.
 * **Outcome:** `SUCCESS` (moves to Testing) or `FAILURE` (back to Engineer).
-
-
 
 ### Step 4: Dynamic Validation (Tester)
 
 * **Trigger:** Appearance of Auditor's AR with `SUCCESS`.
 * **Action:**
-* Runs `make test` inside the container.
-* Verifies `Definition of Done` (e.g., "App runs for 10 minutes without leak").
-* Checks edge cases not covered by Unit Tests.
-
-
+    * Runs `make test` inside the container.
+    * Verifies `Definition of Done` (e.g., "App runs for 10 minutes without leak").
+    * Checks edge cases not covered by Unit Tests.
 * **Submission:**
-* Generates `AR-03-tester-outcome.md`.
+    * Generates `AR-03-tester-outcome.md`.
 * **Outcome:** `SUCCESS` (moves to Done) or `FAILURE` (back to Engineer).
-
-
 
 ### Step 5: Closure (Manager)
 
 * **Trigger:** Appearance of Tester's AR with `SUCCESS`.
 * **Action:**
-1. Updates `00-roadmap-status.md` to `DONE`.
-2. (Optional) Moves Task file to `completed_tasks` (if using archive folder structure).
-3. Signals availability of resources for the next task.
-
-
+    1. Updates `00-roadmap-status.md` to `DONE`.
+    2. (Optional) Moves Task file to `completed_tasks` (if using archive folder structure).
+    3. Signals availability of resources for the next task.
 
 ## 6. The "Action Report" Protocol
 
@@ -152,12 +140,10 @@ The **Action Report (AR)** is the mandatory token for state transition.
 
 * **Format:** Markdown based on `template-action-report.md`.
 * **Naming:** `AR-{Sequence}-{Role}-{Outcome}.md`.
-* *Example:* `AR-01-engineer-success.md`
-* *Example:* `AR-02-auditor-reject.md`
-* *Example:* `AR-03-engineer-fix.md`
-
-
-* **Content:** Must include a list of modified files and a specific justification for the decision.
+* **Mandatory Fields:**
+    * `Relates To`: Maintains the chain of custody (linkage to previous state).
+    * `Process & Reasoning`: Explains the logic behind the changes.
+* **Content:** Must include a list of modified files, evidence of verification, and decision justification.
 
 ## 7. Exception Handling
 

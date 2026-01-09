@@ -68,6 +68,7 @@ flowchart TD
 
 * **Trigger:** Appearance of a new file matching `AR-*.md` in `docs/control/05-tasks/02-reports/{task_id}/`.
 * **Input:** The content of the AR, specifically the Metadata Header:
+    * `Relates To`: [Parent Context ID] (Must match current Task ID or previous AR).
     * `Role`: [Engineer | Auditor | Tester]
     * `Outcome`: [SUCCESS | FAILURE | NEEDS_INFO | BLOCKED]
 
@@ -105,7 +106,8 @@ The Manager must apply the following deterministic logic table. If a combination
 
 1. Read the `Task ID` from the AR filename or header.
 2. Verify that the Task exists in `00-roadmap-status.md`.
-3. **Sanity Check:** Ensure the current status in Roadmap matches the expected previous state (e.g., if Author is Auditor, current status *must* be `AUDIT`).
+3. **Chain of Custody Check:** Verify the `Relates To` field maps correctly to the active Task Definition or the immediately preceding AR (ensure DAG continuity).
+4. **Sanity Check:** Ensure the current status in Roadmap matches the expected previous state (e.g., if Author is Auditor, current status *must* be `AUDIT`).
 
 ### Step 2: State Mutation
 
@@ -115,22 +117,13 @@ The Manager must apply the following deterministic logic table. If a combination
 4. Update the **Owner** column to the `Next Owner`.
 5. Save the file.
 
-### Step 3: Dispatch & Notification
+### Step 3: Process & Reasoning
 
-Issue a prompt to the new owner.
-
-* **If Transition to Next Phase (Forward):**
-    > "@[Next Owner], Task `[Task ID]` is ready for you. Previous stage outcome: **SUCCESS**. Please review the latest Action Report in `docs/control/05-tasks/02-reports/[Task ID]/` and begin."
-
-
-* **If Regression (Backward to Engineer):**
-    > "@Engineer, Task `[Task ID]` was **REJECTED** by @[Previous Role]. Status reverted to **ACTIVE**. Please analyze the Action Report for details and implement fixes."
-
-
-* **If Done:**
-    > "Task `[Task ID]` is **DONE**. Archiving..." (Follows `archive` routine).
-
-
+* **Action:** Explain the *derivation* of the result, not just the result itself.
+* **Content:**
+    * **Process:** Briefly describe the execution path taken.
+    * **Reasoning:** Explain critical decisions. Why did you choose this implementation over alternatives? How did you solve specific obstacles?
+    * *Focus:* Provide context that helps the Auditor understand the "Why", not just the "What".
 
 ## 6. Exception Handling
 

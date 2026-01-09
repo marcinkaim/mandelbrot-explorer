@@ -107,8 +107,8 @@ This routine is invoked immediately after `DYNAMIC_VALIDATION` concludes.
         +-----------------------------------------------------------------------------+
         | NVIDIA-SMI 535.183.01   Driver Version: 535.183.01   CUDA Version: 12.2     |
         |...                                                                          |
-        | 0  NVIDIA RTX 3500 Ada ...  On   | 00000000:01:00.0 Off |                  N/A |
-        | 30%   55C    P8    12W /  80W |    452MiB / 12282MiB |      0%      Default |
+        | 0  NVIDIA RTX 3500 Ada ...  On  | 00000000:01:00.0 Off |                N/A |
+        | 30%   55C    P8    12W /  80W   |  452MiB / 12282MiB   |    0%      Default |
         +-----------------------------------------------------------------------------+
 
         ```

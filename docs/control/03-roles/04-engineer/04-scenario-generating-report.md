@@ -91,15 +91,11 @@ This routine is invoked immediately after:
 
 * **Action:** Populate the YAML frontmatter or Header Table strictly.
 * **Fields:**
-    * `Task ID`: Link to the parent task.
-    * `Author`: Engineer.
+    * `Sequence ID`: e.g., `AR-01`.
+    * `Relates To`: The ID of the document that triggered this work (e.g., `TASK-3.1` or `AR-02-auditor-reject`).
+    * `Role`: `ENGINEER`.
     * `Date`: Current timestamp.
     * `Outcome`: Select one from [`SUCCESS`, `BLOCKED`, `NEEDS_INFO`].
-    * `Next Phase`:
-        * If `SUCCESS`  `AUDIT`.
-        * If `BLOCKED`  `BLOCKED`.
-        * If `NEEDS_INFO`  `DRAFTING`.
-
 
 
 
