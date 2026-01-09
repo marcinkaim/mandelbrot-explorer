@@ -40,7 +40,7 @@ The Auditor executes their duties by adhering to specific inspection scenarios:
 
 ### 2.3. Audit Reporting (`04-scenario-audit-reporting.md`)
 * **Goal:** Formalize the verdict.
-* **Mechanism:** The Auditor produces a binding report that either moves the task to `VALIDATION` (Pass) or sends it back to `ACTIVE` (Reject). Rejections must be cited with specific rule violations.
+* **Mechanism:** The Auditor produces a binding report (anchored to a specific `Input Commit`) that either moves the task to `VALIDATION` (Pass) or sends it back to `ACTIVE` (Reject). Rejections must be cited with specific rule violations.
 * **Reference:** See `04-scenario-audit-reporting.md` for the strict format of acceptance/rejection.
 
 ## 3. Domains of Responsibility

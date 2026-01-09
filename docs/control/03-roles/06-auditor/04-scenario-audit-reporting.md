@@ -76,23 +76,16 @@ This routine is invoked immediately after the completion of `COMPLIANCE_SCAN`.
     * **1+ Minor Defect** (Style, Typo, Comment)  **FAILURE** (In this project, we enforce a "Zero Broken Windows" policy).
     * **0 Defects**  **SUCCESS**.
 
-
-
 ### Step 2: Drafting the Report
 
 * **Location:** `docs/control/05-tasks/02-reports/{Task-ID}/`.
 * **Naming:** `AR-[Seq]-auditor-review.md`.
 * **Metadata Header:**
-    * `Author`: Auditor.
-    * `Relates To`: Link to Engineer's AR.
+    * `Sequence ID`: e.g., `AR-02`.
+    * `Relates To`: The exact ID of the Engineer's Report (e.g., `AR-01`).
+    * `Role`: `AUDITOR`.
+    * `Input Commit`: **CRITICAL.** Must match the Commit Hash found in the Engineer's Report. You are auditing *that specific state*.
     * `Outcome`: `SUCCESS` or `FAILURE`.
-    * `Next Phase`:
-        * If `SUCCESS`  `VALIDATION` (Handover to Tester).
-        * If `FAILURE`  `ACTIVE` (Handover back to Engineer).
-
-
-
-
 
 ### Step 3: Writing the Content
 
@@ -105,8 +98,6 @@ This routine is invoked immediately after the completion of `COMPLIANCE_SCAN`.
 * **Section 3: Instructions**
     * Clear steps for the Engineer on what must be fixed.
 
-
-
 ### Step 4: Publication
 
 * **Action:** Commit the report.
@@ -116,8 +107,6 @@ This routine is invoked immediately after the completion of `COMPLIANCE_SCAN`.
     git commit -m "docs: Audit Report for Task [ID] - [Outcome]"
 
     ```
-
-
 
 ## 6. Output Artifacts
 
@@ -132,8 +121,6 @@ This routine is invoked immediately after the completion of `COMPLIANCE_SCAN`.
     1. The Auditor may grant a **Conditional Pass**.
     2. Requirement: The Auditor MUST create a *new* Task Definition: `task-XX-refactor-complex-logic` and place it in the Backlog.
     3. The Audit Report references this new task: "Passing with Technical Debt Ticket: task-XX".
-
-
 
 ### Case B: Escalation
 

@@ -40,7 +40,7 @@ The Tester executes their duties by adhering to specific validation scenarios:
 
 ### 2.3. Validation Reporting (`04-scenario-validation-reporting.md`)
 * **Goal:** Close the loop.
-* **Mechanism:** The Tester produces a final **Validation Report** that either promotes the task to `DONE` (Release Candidate) or rejects it back to `ACTIVE` (Defect Found).
+* **Mechanism:** The Tester produces a final **Validation Report** (linking back to the Auditor's approval) that either promotes the task to `DONE` (Release Candidate) or rejects it back to `ACTIVE` (Defect Found).
 * **Reference:** See `04-scenario-validation-reporting.md` for the reporting format.
 
 ## 3. Domains of Responsibility

@@ -79,22 +79,16 @@ This routine is invoked immediately after `DYNAMIC_VALIDATION` concludes.
     * **Visual Glitch (Major):** Obscures functionality  **FAILURE**.
     * **Visual Glitch (Minor):** 1px misalignment, slight color deviation  **Judgment Call** (Can pass if a new Bug Ticket is created immediately).
 
-
-
 ### Step 2: Drafting the Report
 
 * **Location:** `docs/control/05-tasks/02-reports/{Task-ID}/`.
 * **Naming:** `AR-[Seq]-tester-validation.md`.
 * **Metadata Header:**
-    * `Author`: Tester.
+    * `Sequence ID`: e.g., `AR-03`.
+    * `Relates To`: The ID of the Auditor's Report (e.g., `AR-02`).
+    * `Role`: `TESTER`.
+    * `Input Commit`: The Hash of the commit that was built and tested. Ensure it matches the approved version.
     * `Outcome`: `SUCCESS` or `FAILURE`.
-    * `Next Phase`:
-        * If `SUCCESS`  `DONE`.
-        * If `FAILURE`  `ACTIVE`.
-
-
-
-
 
 ### Step 3: Compiling the Evidence
 
@@ -114,8 +108,6 @@ This routine is invoked immediately after `DYNAMIC_VALIDATION` concludes.
         ```
         (This proves the RTX 3500 was active during the test).
 
-
-
 ### Step 4: Publication & Signaling
 
 * **Action:** Commit the report to the repository.
@@ -134,8 +126,6 @@ This routine is invoked immediately after `DYNAMIC_VALIDATION` concludes.
     1. Mark Outcome as **SUCCESS**.
     2. Open a **New Task** (Improvement) in the backlog.
     3. Note in the report: "Passed functional reqs. UX sensitivity issue tracked in `task-XX`."
-
-
 
 ### Case B: Environment Flakiness during Reporting
 
