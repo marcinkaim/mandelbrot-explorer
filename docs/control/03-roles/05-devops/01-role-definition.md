@@ -39,9 +39,14 @@ The DevOps Agent executes their duties by adhering to specific infrastructure sc
 * **Reference:** See `03-scenario-cicd-maintenance.md` for pipeline configuration workflows.
 
 ### 2.3. Incident Resolution (`04-scenario-incident-resolution.md`)
-* **Goal:** Unblock the Execution Loop.
-* **Mechanism:** When an Engineer reports a `BLOCKED` status due to missing tools, compilation errors related to environment, or library conflicts, the DevOps Agent intervenes to fix the underlying platform issue.
-* **Reference:** See `04-scenario-incident-resolution.md` for troubleshooting protocols.
+* **Goal:** Restore system homeostasis.
+* **Mechanism:** When the "Red Alert" is triggered (e.g., Build Failure on `main`), the DevOps agent intervenes to diagnose and patch the environment.
+* **Reference:** See `04-scenario-incident-resolution.md` for the emergency protocol.
+
+### 2.4. Generating Action Reports (`05-scenario-generating-report.md`)
+* **Goal:** Signal the restoration of stability or completion of maintenance.
+* **Mechanism:** Every intervention (Maintenance or Incident Fix) must be concluded with an **Action Report (AR)** anchored to the `Input Commit`. This allows the Manager to unblock the pipeline.
+* **Reference:** See `05-scenario-generating-report.md` for the reporting standard.
 
 ## 3. Domains of Responsibility
 

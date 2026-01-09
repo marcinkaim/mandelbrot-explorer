@@ -89,8 +89,6 @@ This routine is invoked when:
     * "ld: cannot find -lcuda"  **DevOps** (Linker/Path).
     * "Undefined reference to..."  **DevOps** (Missing import/library) OR **Engineer** (Missing body).
 
-
-
 ### Step 2: Reproduction (The Clean Room)
 
 * **Action:** Attempt to reproduce the error in a controlled scope.
@@ -99,44 +97,24 @@ This routine is invoked when:
     * If local: Run the exact command the Engineer failed on.
     * If CI: Trigger a debug run or inspect artifacts.
 
+### Step 3: The Fix Implementation
 
+* **Action:** Apply the fix to the repository (e.g., revert bad commit, patch Dockerfile).
+* **Verification:** Run the build locally to ensure homeostasis is restored.
 
-### Step 3: Resolution Strategies
+### Step 4: Reporting (The Formal Closure)
 
-#### Strategy A: The Dependency Fix
-
-* **Context:** A library version mismatch (DLL Hell) or upstream break in Debian Trixie.
-* **Action:**
-    * Pin the version in `alire.toml` (e.g., `crate_x = "1.2.0"` instead of `^1.2.0`).
-    * Or, create a workaround script to link specific system libraries.
-    * *Principle:* Explicit is better than implicit.
-
-
-
-#### Strategy B: The Makefile Patch
-
-* **Context:** The build command is missing flags for the specific hardware (RTX 3500 / i7).
-* **Action:**
-    * Edit `Makefile`.
-    * Example: Add `-L/usr/local/cuda/lib64` or change `-j` count.
-    * Ensure the fix is portable (use `ifdef` if it breaks other envs).
-
-
-
-#### Strategy C: The Environment Reset
-
-* **Context:** The Engineer's environment is hopelessly corrupted.
-* **Action:**
-    * Instruct Engineer to run `scripts/nuke-and-pave.sh` (a script that cleans all caches: `alr clean`, `ccache -C`, removes `obj/`).
-    * Re-run `setup.sh`.
-
-
-
-### Step 4: Verification & Closure
-
-* **Action:** Prove the fix works universally.
-* **Check:** Run the full `make build && make test` cycle.
-* **Handover:** Update the Ticket/Task status to `ACTIVE` and notify the Engineer (`@Engineer, issue resolved in commit hash X`).
+* **Artifact:** Create an **Action Report** (AR).
+* **Template:** `docs/control/02-workflow/02-document-templates/template-action-report.md`.
+* **Metadata Requirements:**
+    * `Role`: `DEVOPS`.
+    * `Relates To`: `BUG-[ID]` or the `Commit Hash` that caused the failure.
+    * `Input Commit`: The state *before* your fix.
+    * `Outcome`: `SUCCESS` (System Restored).
+* **Content Mapping:**
+    * **Executive Summary:** This acts as the **Post-Mortem**. Briefly explain Root Cause Analysis (RCA).
+    * **Technical Details:** Diff of the fix.
+    * **Evidence:** Logs showing the build passing again.
 
 ## 6. Output Artifacts
 
@@ -151,8 +129,6 @@ This routine is invoked when:
 * **Action:**
     1. DevOps locks the project to the older working version via `apt` pinning preferences in `setup.sh`.
     2. Creates a long-term task to support the new compiler version.
-
-
 
 ### Case B: The "Heisenbug" (Flaky CI)
 
