@@ -19,16 +19,16 @@
 # Action Report: [TASK-ID]
 
 * **Sequence ID:** AR-[XX] (e.g., AR-01, AR-02)
+* **Relates To:** [TASK-ID | RFC-ID | AR-XX] (Preceding documents essential for this context)
 * **Date:** YYYY-MM-DD
 * **Role:** [ENGINEER | DEVOPS | AUDITOR | TESTER]
 * **Input Commit:** [Hash before action]
 * **Outcome:** [SUCCESS | FAILURE | NEEDS_REWORK]
 
 ## 1. Executive Summary
-> Briefly describe the action taken. What was the goal?
-> * **Engineer/DevOps:** "Implemented double-buffering mechanism."
-> * **Auditor:** "Performed static analysis and compliance check against REQ-003."
-> * **Tester:** "Validated GPU acceleration on RTX 3500."
+> **Outcome:** Briefly describe the final result. What was achieved?
+> **Process & Reasoning:** Summarize the execution path. What logic was applied? What obstacles were encountered and how were they overcome? (Focus on the *transition function*—how we got from A to B, not just the final state B).
+> *Example:* "Implemented double-buffering. Initially attempted using a single mutex, but high contention led to 40% performance drop (see obstacle). Pivoted to atomic pointers for swap chain (reasoning), restoring expected framerate."
 
 ## 2. Technical Details & Evidence (The "Meat")
 > Fill the subsection relevant to your role. Delete or leave others empty.
@@ -58,7 +58,3 @@
 
 ## 3. Blockers & Risks
 > Are there any impediments preventing the next step in the loop?
-
-## 4. Handoff Instructions
-> Message to the Manager or the next Agent in the loop.
-> e.g., "Ready for Audit", "Returning to Engineering for fixes".
