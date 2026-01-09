@@ -18,6 +18,7 @@ alire.toml.lock
 *.code-workspace
 *.swp
 logs/
+patches/
 
 # Secrets (Critical)
 .secrets
