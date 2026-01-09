@@ -63,8 +63,8 @@ The Tester executes their duties by adhering to specific validation scenarios:
     * `docs/control/05-tasks/01-epics/` (The Truth).
     * `docs/control/01-requirements/` (The Criteria).
     * `bin/` (The Executable).
-* **Write Access:**
-    * `docs/control/05-tasks/02-reports/` (Outputting Validation Reports).
+* **Read-Write Access:**
+    * `docs/control/05-tasks/02-reports/` (Reading and Outputting Action Reports).
 
 ### 4.2. Operational Capabilities
 * **Execution:** Full permission to run the application in the Debian 13 environment.

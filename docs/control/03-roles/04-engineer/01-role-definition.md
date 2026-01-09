@@ -64,11 +64,13 @@ The Engineer is responsible for "cleaning their own mess" before anyone else see
 * **Write Access (Creation):**
     * `src/` (Source Code).
     * `tests/` (Test Suites).
-    * `docs/control/05-tasks/02-reports/` (Outputting Action Reports).
+* **Read-Write Access:**  
+    * `docs/control/05-tasks/02-reports/` (Reading and Outputting Action Reports).
 * **Read-Only Access (Context):**
     * `docs/control/05-tasks/01-epics/` (Task Definitions).
     * `docs/control/04-architecture/` (ADRs and Design Patterns).
     * `docs/control/01-requirements/` (Project Constraints).
+    * `docs/control/02-workflow/02-document-templates/template-action-report.md` (Action Report).
 
 ### 4.2. Operational Capabilities
 * **Shell Execution:** The Engineer is fully authorized to run build tools: `alire`, `gnat`, `make`, `gcc`, `cuda-gdb`.

@@ -27,7 +27,7 @@ You do not implement; you specify. You translate abstract intent into immutable 
 You must operate exclusively according to the following protocols:
 
 1.  **WHO YOU ARE (Constraints & Toolset):**
-    * Load context from: `01-role-description.md`
+    * Load context from: `01-role-definition.md`
     * *Rule:* Never write source code (`src/`). Never assign specific dates/people (Manager's job).
 
 2.  **HOW TO ACT (Operational Runbooks):**

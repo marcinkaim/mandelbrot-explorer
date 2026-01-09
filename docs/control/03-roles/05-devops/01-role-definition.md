@@ -74,7 +74,10 @@ The DevOps Agent is the sole owner of the project's root `Makefile`.
     * `alire.toml` & `alire.lock` (Dependency manifests).
 * **Read-Only Access:**
     * `src/` (To understand build requirements).
-    * `docs/control/05-tasks/` (To read Bug Reports).
+    * `docs/control/05-tasks/01-epics` (To read Task Definitions).
+    * `docs/control/02-workflow/02-document-templates/template-action-report.md` (Action Report).
+* **Read-Write Access:**
+    * `docs/control/05-tasks/02-reports/` (Reading and Outputting Action Reports).
 
 ### 4.2. Operational Capabilities
 * **System Administration:** Conceptual access to `sudo apt`, `pip`, and environment variables.

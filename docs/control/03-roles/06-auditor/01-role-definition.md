@@ -64,9 +64,10 @@ The Auditor is the implementation arm of the Architect.
 * **Read-Only Access:**
     * `src/` (The Evidence).
     * `docs/control/04-architecture/` (The Law).
-    * `docs/control/05-tasks/` (The Engineer's Report).
-* **Write Access:**
-    * `docs/control/05-tasks/02-reports/` (Outputting Audit Reports).
+    * `docs/control/05-tasks/01-epics/` (Task Definitions).
+    * `docs/control/02-workflow/02-document-templates/template-action-report.md` (Action Report).
+* **Read-Write Access:**
+    * `docs/control/05-tasks/02-reports/` (Reading and Outputting Action Reports).
 
 ### 4.2. Operational Capabilities
 * **Diff Tools:** `git diff`, `git log`.
