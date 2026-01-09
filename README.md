@@ -9,7 +9,7 @@ This project demonstrates the integration of high-integrity software engineering
 ## 🚀 Technology Stack
 
 * **Host Language:** Ada 2022 (GNAT FSF 14.x)
-* **Device Kernel:** CUDA C++ / PTX
+* **Device Kernel:** CUDA PTX
 * **Graphics/Input:** SDL2 (via Thin/Thick Ada bindings)
 * **Build System:** Alire (`alr`) inside Podman/Docker
 * **Target OS:** Linux (Debian 13 Trixie target)
@@ -85,7 +85,7 @@ The resulting artifact is located in `build/bin/`.
 ├── debian/                 # Debian packaging metadata
 ├── docker/                 # Container definitions (Containerfile)
 ├── docs/                   # Documentation & Architecture Decision Records (ADR)
-├── kernels/                # CUDA PTX/C++ kernels
+├── kernels/                # CUDA PTX kernels
 ├── resources/              # Shaders, assets, configuration
 ├── scripts/                # Helper scripts (git sync, CI/CD)
 ├── src/                    # Source Code
