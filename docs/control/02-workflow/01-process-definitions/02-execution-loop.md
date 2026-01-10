@@ -97,11 +97,15 @@ flowchart TD
 ### Step 2: Implementation (Engineer)
 
 * **Context Loading:** Engineer reads `Task Definition`, `REQ-*`, and `ADR-*`.
-* **Work:** Modifies `src/`, creates `tests/`.
+* **The "Semantic Loop":**
+    1. **Plan:** Identify necessary file changes.
+    2. **Draft:** Generate a **Semantic Diff** (Protocol P-001) describing the changes.
+    3. **Verify:** Ensure the description is unambiguous (enough context lines).
+* **Work:** Modifies `src/`, creates `tests/` using the Semantic Diff format.
 * **Self-Correction:** Runs local build (`make build`).
 * **Submission:**
     1. Creates folder: `docs/control/05-tasks/02-reports/task-X.Y/`.
-    2. Generates Report: `AR-01-engineer-success.md` using `template-action-report.md`.
+    2. Generates Report: `AR-01-engineer-success.md` as a **Semantic Patch** adding the file.
 * **Outcome:** `SUCCESS` (moves to Audit) or `NEEDS_INFO` (escalates to Phase 1).
 
 ### Step 3: Static Audit (Auditor)
@@ -164,3 +168,13 @@ The **Action Report (AR)** is the mandatory token for state transition.
 * **Who:** Engineer.
 * **Action:** Submit AR with Outcome `BLOCKED`.
 * **Result:** Manager intervenes. May require a new `00-scaffolding` task or help from DevOps.
+
+## 8. The Semantic Diff Protocol
+
+**"Context over Coordinates."**
+
+All artifacts (Code, Docs, Reports) MUST be exchanged using the **Semantic Diff** format (defined in `docs/control/02-workflow/03-protocols/P-001-semantic-diff.md`).
+
+1.  **Format:** Markdown-based Semantic Patch.
+2.  **Constraint:** Agents are forbidden from outputting raw code blocks for file modification or standard Git Diffs. They must use the `Lines to remove` / `Lines to add` structure.
+3.  **Compliance:** Any output not following P-001 is considered a syntax error and will be rejected.

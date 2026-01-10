@@ -127,6 +127,9 @@ The content inside `Lines to remove` MUST be unique in the target file.
 * The `Lines to add` block must preserve the correct indentation relative to the file structure.
 * The parser applying the patch should use "Fuzzy Whitespace Matching" (ignore leading/trailing whitespace) to locate the `Lines to remove` block, but use exact values from `Lines to add` when writing.
 
+### Rule 4: Metadata Exclusion
+* **No License Headers:** Do NOT include copyright or license headers (e.g., GPL preambles) in created files. These are handled by the CI/CD pipeline (e.g., `scripts/ensure_license_headers.sh`). Focus purely on the content/logic.
+
 ## 4. Parser Logic (Reference Implementation Guide)
 
 The tooling applying this patch operates as follows:
