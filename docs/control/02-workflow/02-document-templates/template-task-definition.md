@@ -43,6 +43,7 @@
 * **Safety:** [e.g., No Unchecked_Conversion allowed]
 * **Performance:** [e.g., Zero-copy via PBO]
 * **Tooling:** [e.g., Use SPARK provers]
+* **Protocol Compliance:** ALL changes must be delivered as a **Semantic Diff** (P-001).
 
 ## 5. Definition of Done (DoD)
 * [ ] Code compiles without warnings.

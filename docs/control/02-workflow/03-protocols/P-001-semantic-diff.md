@@ -130,6 +130,12 @@ The content inside `Lines to remove` MUST be unique in the target file.
 ### Rule 4: Metadata Exclusion
 * **No License Headers:** Do NOT include copyright or license headers (e.g., GPL preambles) in created files. These are handled by the CI/CD pipeline (e.g., `scripts/ensure_license_headers.sh`). Focus purely on the content/logic.
 
+### Rule 5: Batch Size Limits (Complexity Control)
+To ensure reviewability and reduce hallucination risks ("Blast Radius"), patches must adhere to limits:
+* **Creation:** Max 1 file per patch.
+* **Modification:** Max 2 files per patch (if any content is modified).
+* **Deletion/Move:** Max 10 files per patch (batch refactoring allowed).
+
 ## 4. Parser Logic (Reference Implementation Guide)
 
 The tooling applying this patch operates as follows:
