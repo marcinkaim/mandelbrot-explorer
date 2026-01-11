@@ -18,24 +18,23 @@
 
 # Action Report: [TASK-ID]
 
-* **Sequence ID:** AR-[XX] (e.g., AR-01, AR-02)
-* **Relates To:** [TASK-ID | RFC-ID | AR-XX] (Preceding documents essential for this context)
-* **Date:** YYYY-MM-DD
+* **Sequence ID:** AR-[XX] (e.g., AR-01, AR-02 - check previous files to increment)
+* **Relates To:** [TASK-ID | RFC-ID | AR-XX]
+* **Date:** 2026-XX-XX
 * **Role:** [ENGINEER | DEVOPS | AUDITOR | TESTER]
-* **Input Commit:** [Hash before action]
+* **Input Commit:** [Git Hash before this action]
 * **Outcome:** [SUCCESS | FAILURE | NEEDS_INFO]
 
 ## 1. Executive Summary
-> **Outcome:** Briefly describe the final result. What was achieved?
-> **Process & Reasoning:** Summarize the execution path. What logic was applied? What obstacles were encountered and how were they overcome? (Focus on the *transition function*—how we got from A to B, not just the final state B).
-> *Example:* "Implemented double-buffering. Initially attempted using a single mutex, but high contention led to 40% performance drop (see obstacle). Pivoted to atomic pointers for swap chain (reasoning), restoring expected framerate."
+> **Outcome:** [Briefly describe the final result. What was achieved?]
+> **Process & Reasoning:** [Summarize the execution path. Focus on the transition function—how we got from A to B. If obstacles were encountered, explain the pivot logic.]
 
-## 2. Technical Details & Evidence (The "Meat")
-> Fill the subsection relevant to your role. Delete or leave others empty.
+## 2. Technical Details & Evidence
+> (Agent: Keep only the section below relevant to your Role. Delete the others.)
 
 ### 2.1 Implementation (Engineer / DevOps)
-* **Key Changes:** (List modified components/files)
-* **Design Decisions:** (Why did you choose this path? Reference ADRs)
+* **Key Changes:** * [List modified components/files]
+* **Design Decisions:** * [Why did you choose this path? Reference ADRs if applicable]
 * **Safety Protocol:**
     * [ ] Checked `ADR-0006` (Safe Interop) - all unsafe blocks tagged?
     * [ ] Hermetic Build respected?
@@ -45,16 +44,26 @@
     * `REQ-003` (Type Safety): [PASS/FAIL]
     * `ADR-0006` (Interop Boundaries): [PASS/FAIL] - Verified no leak of `System.Address`.
     * `ADR-0007` (Resilience): [PASS/FAIL]
-* **Static Analysis:** (Output summary from GNATprove / compiler warnings)
+* **Static Analysis:** * [Output summary from GNATprove / compiler warnings]
 
 ### 2.3 Validation Telemetry (Tester)
-* **Environment:** (OS, Kernel, GPU Driver)
+* **Environment:** [OS, Kernel, GPU Driver version]
 * **Metrics:**
     * GPU Usage: `[Paste nvidia-smi output or %]`
     * Frame Time: `XX.X ms`
-* **Defects:**
-    * [ ] No critical defects found.
-    * [ ] Defects found! See attached **Bug Report**: `BUG-[ID]`
+* **Validation Outcome:** [PASS | FAIL]
+
+#### Defect Details (Fill only if Outcome == FAIL)
+> **Merging Bug Report into Action Report for atomic context.**
+* **Severity:** [Critical | Major | Minor]
+* **Symptoms:** * [What is happening? Paste Error Logs / Screenshots description]
+* **Reproduction Steps:**
+    1. [Step 1]
+    2. [Step 2]
+* **Expected vs Actual:**
+    * *Expected:* [What should happen?]
+    * *Actual:* [What happened instead?]
+* **Hypothesis:** * [Initial analysis of the root cause. Is it a Race Condition? Memory Leak? Logic Error?]
 
 ## 3. Blockers & Risks
-> Are there any impediments preventing the next step in the loop?
+> [Are there any impediments preventing the next step in the loop? If Outcome is FAILURE, this is likely 'Yes'.]
