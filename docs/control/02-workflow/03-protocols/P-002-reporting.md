@@ -29,6 +29,8 @@ It mimics the **Lab Notebook** of a scientist or the **Flight Recorder** (Black 
 The official, executable template for this protocol is located at:
 `docs/control/02-workflow/02-document-templates/template-action-report.md`
 
+**Applicability:** This protocol is used by the **Engineer**, **DevOps**, **Auditor**, and **Tester** roles.
+
 All Agents concluding a unit of work (Task, sub-task, or review) MUST generate a response strictly adhering to this structure.
 
 ### 2.1. The Container

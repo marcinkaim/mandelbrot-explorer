@@ -31,6 +31,8 @@ It applies the **Measure Twice, Cut Once** principle to software engineering. By
 The official, executable template for this protocol is located at:
 `docs/control/02-workflow/02-document-templates/template-action-plan.md`
 
+**Applicability:** This protocol is used by the **Engineer**, **DevOps**, and **Tester** roles.
+
 All Agents preparing to enter the **Execution Loop** MUST generate a response strictly adhering to this structure.
 
 ### 2.1. The Container

@@ -29,6 +29,8 @@ It mimics how a Lead Engineer describes changes to a peer: *"In file X, find the
 The official, executable template for this protocol is located at:
 `docs/control/02-workflow/02-document-templates/template-semantic-patch.md`
 
+**Applicability:** This protocol is strictly for the **Engineer** and **DevOps** roles.
+
 All Agents generating code or documentation modifications MUST strictly adhere to the structure defined in that template.
 
 ### 2.1. The Container
