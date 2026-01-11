@@ -26,111 +26,52 @@ It mimics how a Lead Engineer describes changes to a peer: *"In file X, find the
 
 ## 2. The Patch Structure
 
-Every response involving code or documentation modification MUST follow this Markdown structure:
+The official, executable template for this protocol is located at:
+`docs/control/02-workflow/02-document-templates/template-semantic-patch.md`
+
+All Agents generating code or documentation modifications MUST strictly adhere to the structure defined in that template.
 
 ### 2.1. The Container
-The output starts with a global header and a summary.
-
-```markdown
-# Semantic Patch
-
-## Summary
-* **Modified**: `src/app/main.adb`
-* **Created**: `docs/new_concept.md`
-* **Deleted**: `legacy/old_script.sh`
-
-```
+Every response starts with a global header and a global summary table listing all affected files and their operation status (Modified, Created, Deleted, Moved).
 
 ### 2.2. Operations
+The body of the patch consists of per-file operations.
 
-After the summary, list operations file by file.
-
-#### A. Modification
-
-Used when changing existing content.
-
-```markdown
-## File `path/to/existing/file.ext` modified:
-
-### Hunk 1:
-#### Lines to remove:
-```[lang]
-[Original code block to be replaced]
-[MUST contain enough context lines to be unique in the file]
-
-```
-
-#### Lines to add:
-
-```[lang]
-[New code block]
-
-```
-
-```
-
-#### B. Creation
-Used when creating a new file.
-
-```markdown
-## File `path/to/new/file.ext` created:
-
-### Hunk 1:
-#### Lines to remove:
-
-#### Lines to add:
-```[lang]
-[Full content of the new file]
-
-```
-
-```
-
-#### C. Deletion
-Used when removing a file entirely. No code blocks required.
-
-```markdown
-## File `path/to/file.ext` deleted.
-
-```
-
-#### D. Renaming / Moving
-
-Used when moving a file.
-
-```markdown
-## File `old/path/file.ext` moved to `new/path/file.ext`.
-
-```
+* **Modification:** Used when changing existing content. Relies on finding unique text blocks to replace.
+* **Creation:** Used when creating a new file from scratch.
+* **Deletion:** Used when removing a file entirely.
+* **Renaming/Moving:** Used when changing a file's path.
 
 ---
 
-## 3. Rules of Engagement (The "3 Constraints")
+## 3. Rules of Engagement (The "Constraints")
 
-To ensure the patch applies correctly, Agents must adhere to these rules:
+To ensure the patch applies correctly and remains human-readable, Agents must adhere to these rules:
 
 ### Rule 1: Uniqueness via Context
-
 The content inside `Lines to remove` MUST be unique in the target file.
-
 * **Bad:** Removing just `end loop;`. (Matches multiple places).
 * **Good:** Removing `end loop;` along with the 2 preceding lines of specific logic.
 
-### Rule 2: Markdown Hygiene
+### Rule 2: Narrative Context (The "Why")
+For every `Modified` or `Created` block, the Agent MUST provide a **Summary of changes** section immediately following the file header.
+* This summary must explain the *logic* and *intent* of the changes in that specific file.
+* It serves as a "micro-documentation" for the Auditor/Reviewer.
+* *Note:* This is not required for `Deleted` or `Moved` operations unless significant context is lost.
 
+### Rule 3: Markdown Hygiene
 * Always use triple backticks (```) for code blocks.
 * Ensure the language tag (e.g., `ada`, `bash`, `markdown`) is specified.
-* If modifying a Markdown file that contains code blocks, use standard backticks. The parser is expected to handle nested blocks contextually or the Agent should maximize context to avoid ambiguity.
+* If modifying a Markdown file that contains code blocks, use standard backticks. The parser is expected to handle nested blocks contextually, or the Agent should maximize context to avoid ambiguity.
 
-### Rule 3: Whitespace & Indentation
-
+### Rule 4: Whitespace & Indentation
 * The `Lines to add` block must preserve the correct indentation relative to the file structure.
 * The parser applying the patch should use "Fuzzy Whitespace Matching" (ignore leading/trailing whitespace) to locate the `Lines to remove` block, but use exact values from `Lines to add` when writing.
 
-### Rule 4: Metadata Exclusion
+### Rule 5: Metadata Exclusion
 * **No License Headers:** Do NOT include copyright or license headers (e.g., GPL preambles) in created files. These are handled by the CI/CD pipeline (e.g., `scripts/ensure_license_headers.sh`). Focus purely on the content/logic.
 
-### Rule 5: Batch Size Limits (Complexity Control)
+### Rule 6: Batch Size Limits (Complexity Control)
 To ensure reviewability and reduce hallucination risks ("Blast Radius"), patches must adhere to limits:
 * **Creation:** Max 1 file per patch.
 * **Modification:** Max 2 files per patch (if any content is modified).
