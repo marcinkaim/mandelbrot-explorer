@@ -18,10 +18,15 @@
 
 # Action Plan: [TASK-ID]
 
-* **Sequence ID:** PLAN-[XX] (e.g., PLAN-01 - check previous files to increment)
-* **Relates To:** [TASK-ID] (The parent task definition)
-* **Date:** 2026-XX-XX
+## 0. Traceability & Meta
+* **Sequence ID:** PLAN-[XX] (e.g., PLAN-01, PLAN-02-fix)
+* **Task:** [TASK-ID] (The invariant parent task, e.g., TASK-3.1)
+* **Trigger/Context:** [DOCUMENT-ID]
+    * *Standard:* Same as Task ID (if first run).
+    * *Fix Loop:* Reference to the Rejecting AR (e.g., AR-02-auditor-reject).
+    * *Unblocked:* Reference to Architect's Decision/RFC (e.g., RFC-12 or ADR-05).
 * **Role:** [ENGINEER | DEVOPS | TESTER]
+* **Date:** 2026-XX-XX
 * **Input Commit:** [Git Hash base for this plan]
 
 ## 1. Strategy & Approach

@@ -18,11 +18,16 @@
 
 # Action Report: [TASK-ID]
 
-* **Sequence ID:** AR-[XX] (e.g., AR-01, AR-02 - check previous files to increment)
-* **Relates To:** [TASK-ID | RFC-ID | AR-XX]
-* **Date:** 2026-XX-XX
+## 0. Traceability & Meta
+* **Sequence ID:** AR-[XX] (e.g., AR-01, AR-02)
+* **Task:** [TASK-ID] (The invariant parent task)
+* **Source Plan:** [PLAN-ID] (The plan being executed or verified, e.g., PLAN-01)
+* **Predecessor:** [AR-ID | NONE]
+    * *Engineer/DevOps:* Usually `NONE` (unless refining previous partial success).
+    * *Auditor/Tester:* The AR ID of the implementation being reviewed (e.g., AR-01-engineer-success).
 * **Role:** [ENGINEER | DEVOPS | AUDITOR | TESTER]
-* **Input Commit:** [Git Hash before this action]
+* **Date:** 2026-XX-XX
+* **Input Commit:** [Git Hash utilized/reviewed]
 * **Outcome:** [SUCCESS | FAILURE | NEEDS_INFO]
 
 ## 1. Executive Summary
